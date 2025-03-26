@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4376086822210736287}
   - component: {fileID: 5117594821991337302}
   - component: {fileID: 3901139787315701956}
-  - component: {fileID: 6043015999175316992}
+  - component: {fileID: 2932895058186333428}
   m_Layer: 0
   m_Name: RedCard
   m_TagString: Untagged
@@ -83,7 +83,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 6.25, y: 8}
+  m_Size: {x: 0.390625, y: 0.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -121,18 +121,18 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -0.0010418296, y: 0.0041672587}
+  m_Offset: {x: 0.0061116964, y: 0.008148909}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 0.390625, y: 0.5}
-    newSize: {x: 6.25, y: 8}
+    newSize: {x: 0.390625, y: 0.5}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 0.40639353, y: 0.50431824}
+  m_Size: {x: 0.3953245, y: 0.48088884}
   m_EdgeRadius: 0
 --- !u!50 &4376086822210736287
 Rigidbody2D:
@@ -144,7 +144,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 7821848140236092099}
   m_BodyType: 1
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
@@ -213,7 +213,7 @@ TrailRenderer:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.045892715
+        value: 0.26363564
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -234,7 +234,7 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.7686275, g: 0.13725491, b: 0.18431373, a: 1}
+      key0: {r: 0.7686275, g: 0.14117648, b: 0.18823531, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 0}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
@@ -287,7 +287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damageAmount: 1
---- !u!114 &6043015999175316992
+--- !u!114 &2932895058186333428
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -296,14 +296,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 7821848140236092099}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50d1612853e9c4747908712e497ab35b, type: 3}
+  m_Script: {fileID: 11500000, guid: c1b98c7c14fbdc4409ad6586edbf839b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
   lifetime: 5
   damageAmount: 1
   trailRenderer: {fileID: 5117594821991337302}
-  trailColor: {r: 0.7686275, g: 0.13725491, b: 0.18431373, a: 1}
-  backfireChance: 0.1
-  explosionRadius: 2
-  explosionEffectPrefab: {fileID: 0}
+  useCollision: 1

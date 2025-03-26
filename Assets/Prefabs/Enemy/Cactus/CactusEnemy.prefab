@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 1557252036987105398}
   - component: {fileID: 6567131496765133333}
   - component: {fileID: 6497144223932137571}
+  - component: {fileID: 6219827037852507494}
   m_Layer: 0
   m_Name: CactusEnemy
   m_TagString: Untagged
@@ -263,6 +264,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fd9576fdfe3997498b5128a6cd7eaf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roamChangeDirFloat: 2
+  attackRange: 0
+  enemyType: {fileID: 0}
+  attackCooldown: 2
+  stopMovingWhileAttacking: 0
 --- !u!114 &1557252036987105398
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,8 +281,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bde1e1002f62134b89ac6e4065f57f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startingHealth: 3
+  startingHealth: 10000
   deathVFXPrefab: {fileID: 1838299195302592552, guid: 44dec48f5a56e424fa50b513d1dfef0a, type: 3}
+  knockBackThrust: 15
 --- !u!114 &6567131496765133333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -302,5 +309,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 807e34a5a5945304d820f3bc9a0aca45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  flashMaterial: {fileID: 2100000, guid: 1f09d9749c1dad24b970d61498d2b89e, type: 2}
-  restoreDefaultMaterialTime: 0.2
+  whiteFlashMat: {fileID: 2100000, guid: 1f09d9749c1dad24b970d61498d2b89e, type: 2}
+  restoreDefaultMatTime: 0.2
+--- !u!114 &6219827037852507494
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3169723910289547380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80e17c16fab16cc44a4731e63d47c1f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  goldCoin: {fileID: 4227510733617100677, guid: cb1668f52044dae4e8f7738b18e58518, type: 3}
+  healthGlobe: {fileID: 4053166355274417737, guid: 9fe16b14ecf19b04e9510043f9d9d1e5, type: 3}

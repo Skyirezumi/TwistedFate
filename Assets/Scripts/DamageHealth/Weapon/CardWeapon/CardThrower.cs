@@ -6,10 +6,23 @@ using UnityEngine.UI;
 public class CardThrower : MonoBehaviour
 {
     [Header("Card Prefabs")]
-    [SerializeField] private GameObject redCardPrefab;
-    [SerializeField] private GameObject greenCardPrefab;
-    [SerializeField] private GameObject blueCardPrefab;
+    [SerializeField] private GameObject cardPrefab;
     [SerializeField] private Transform throwPoint;
+    
+    [Header("Card Appearances")]
+    [SerializeField] private Sprite redCardSprite;
+    [SerializeField] private Sprite greenCardSprite;
+    [SerializeField] private Sprite blueCardSprite;
+    
+    [Header("Card Effect Prefabs")]
+    [SerializeField] private GameObject redEffectPrefab;
+    [SerializeField] private GameObject greenEffectPrefab;
+    [SerializeField] private GameObject blueEffectPrefab;
+    
+    [Header("Card Stats")]
+    [SerializeField] private CardStats redCardStats = new CardStats();
+    [SerializeField] private CardStats greenCardStats = new CardStats();
+    [SerializeField] private CardStats blueCardStats = new CardStats();
     
     [Header("Throwing Settings")]
     [SerializeField] private float throwCooldown = 0.5f;
@@ -35,7 +48,7 @@ public class CardThrower : MonoBehaviour
         }
     }
     
-    // This is now only used for cooldown tracking
+    // This is only used for cooldown tracking
     private void Update()
     {
         // Cooldown timer update for UI
@@ -59,33 +72,59 @@ public class CardThrower : MonoBehaviour
         // Start cooldown
         StartCoroutine(ThrowCooldown());
         
-        // Get mouse position in world space
-        Vector3 mousePosition = GetMouseWorldPosition();
+        // Get mouse position in screen space
+        Vector3 mousePosition = Input.mousePosition;
+        // Convert to world coordinates
+        mousePosition = mainCamera.ScreenToWorldPoint(mousePosition);
+        // Set Z to match throwPoint so we have a proper 2D comparison
+        mousePosition.z = throwPoint.position.z;
         
-        // Calculate direction precisely - direction from throw point to mouse
-        Vector2 direction = (mousePosition - throwPoint.position).normalized;
+        // Calculate direction from throwPoint to mouse position
+        Vector2 direction = mousePosition - throwPoint.position;
+        direction.Normalize();
+        
+        Debug.Log($"Mouse position: {mousePosition}, Direction: {direction}");
+        
+        if (direction.magnitude < 0.1f)
+        {
+            Debug.LogWarning("Direction magnitude too small, defaulting to right");
+            direction = Vector2.right;
+        }
         
         // Randomly select which card to throw
         int randomCard = Random.Range(0, 3);
-        GameObject cardPrefab = null;
+        Card.CardType cardType = Card.CardType.Red;
+        Sprite cardSprite = redCardSprite;
+        GameObject effectPrefab = redEffectPrefab;
+        CardStats stats = redCardStats;
+        Color cardColor = Color.red;
         
         switch (randomCard)
         {
-            case 0:
-                cardPrefab = redCardPrefab;
+            case 0: // Red card
+                cardType = Card.CardType.Red;
+                cardSprite = redCardSprite;
+                effectPrefab = redEffectPrefab;
+                stats = redCardStats;
+                cardColor = Color.red;
+                Debug.Log("Throwing RED card");
                 break;
-            case 1:
-                cardPrefab = greenCardPrefab;
+            case 1: // Green card
+                cardType = Card.CardType.Green;
+                cardSprite = greenCardSprite;
+                effectPrefab = greenEffectPrefab;
+                stats = greenCardStats;
+                cardColor = Color.green;
+                Debug.Log("Throwing GREEN card");
                 break;
-            case 2:
-                cardPrefab = blueCardPrefab;
+            case 2: // Blue card
+                cardType = Card.CardType.Blue;
+                cardSprite = blueCardSprite;
+                effectPrefab = blueEffectPrefab;
+                stats = blueCardStats;
+                cardColor = Color.blue;
+                Debug.Log("Throwing BLUE card");
                 break;
-        }
-        
-        if (cardPrefab == null)
-        {
-            Debug.LogWarning("Missing card prefab!");
-            return;
         }
         
         // Play throw sound if assigned
@@ -94,37 +133,42 @@ public class CardThrower : MonoBehaviour
             AudioSource.PlayClipAtPoint(throwSound, throwPoint.position, 0.6f);
         }
         
-        // Instantiate selected card
-        GameObject cardObject = Instantiate(cardPrefab, throwPoint.position, Quaternion.identity);
-        Card card = cardObject.GetComponent<Card>();
+        // Calculate exact angle for card orientation
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         
+        // Instantiate card with correct rotation
+        GameObject cardObject = Instantiate(cardPrefab, throwPoint.position, Quaternion.identity);
+        
+        // Get the Card component and set it up
+        Card card = cardObject.GetComponent<Card>();
         if (card != null)
         {
-            // Calculate angle and set rotation - more precise calculation
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            cardObject.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            // First set sprite
+            SpriteRenderer spriteRenderer = cardObject.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null && cardSprite != null)
+            {
+                spriteRenderer.sprite = cardSprite;
+                spriteRenderer.color = cardColor; // Set color directly too
+                Debug.Log($"Set sprite and color for {cardType} card");
+            }
+            else
+            {
+                Debug.LogError("Card sprite or renderer missing!");
+            }
             
-            // Set card speed from this component
-            card.SetSpeed(cardSpeed);
+            // Then initialize with correct stats
+            card.Initialize(cardType, stats, effectPrefab, cardColor);
             
-            // Launch the card
+            // Launch the card AFTER initialization
             card.Launch(direction);
+            
+            // Verify card is set up correctly
+            Debug.Log($"Card launched with direction {direction}");
         }
-    }
-    
-    // Gets precise mouse world position for accurate aiming
-    private Vector3 GetMouseWorldPosition()
-    {
-        // Get the mouse position in screen space
-        Vector3 screenPosition = Input.mousePosition;
-        
-        // Set the z position based on distance from camera to throwPoint
-        screenPosition.z = mainCamera.WorldToScreenPoint(throwPoint.position).z;
-        
-        // Convert to world space with the correct z depth
-        Vector3 worldPosition = mainCamera.ScreenToWorldPoint(screenPosition);
-        
-        return worldPosition;
+        else
+        {
+            Debug.LogError("Card component missing from prefab!");
+        }
     }
     
     private IEnumerator ThrowCooldown()
