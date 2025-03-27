@@ -2299,9 +2299,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59a847c12c9502449a5bf0c46bcaf17e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  musicSource: {fileID: 0}
+  musicSource: {fileID: 279108262}
   normalPlaylist:
-  - {fileID: 0}
+  - {fileID: 8300000, guid: b86155e3f7b3cbb4697960240b527d25, type: 3}
+  - {fileID: 8300000, guid: 7f126025812da1f4499aee83ac2573ff, type: 3}
+  - {fileID: 8300000, guid: d99ccb90665c56042a320ede4bced0ee, type: 3}
+  - {fileID: 8300000, guid: 308b59bcb6f856048b9c387f37f7f34c, type: 3}
+  - {fileID: 8300000, guid: a910a4c1968d5ea42a9d3384e66ff720, type: 3}
+  - {fileID: 8300000, guid: a34576ebac6ab764b8685a408dd22542, type: 3}
+  - {fileID: 8300000, guid: e2f0ca2b3f223f14c8470c746a4a9ff2, type: 3}
+  - {fileID: 8300000, guid: 24759a2e94697f94f8892c0cb6b36c97, type: 3}
   crossFadeDuration: 1.5
   minTimeBetweenSongs: 0.5
   debugMode: 0
@@ -41596,12 +41603,16 @@ PrefabInstance:
       value: Saloon (1)
       objectReference: {fileID: 0}
     - target: {fileID: 8746351065108706795, guid: 14db342fd8358f84c8e5c7223119a767, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.9786505
+      objectReference: {fileID: 0}
+    - target: {fileID: 8746351065108706795, guid: 14db342fd8358f84c8e5c7223119a767, type: 3}
       propertyPath: m_LocalPosition.x
       value: 5.78
       objectReference: {fileID: 0}
     - target: {fileID: 8746351065108706795, guid: 14db342fd8358f84c8e5c7223119a767, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.05
+      value: 7.1142
       objectReference: {fileID: 0}
     - target: {fileID: 8746351065108706795, guid: 14db342fd8358f84c8e5c7223119a767, type: 3}
       propertyPath: m_LocalPosition.z

@@ -106,10 +106,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fd9576fdfe3997498b5128a6cd7eaf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roamChangeDirFloat: 2
-  attackRange: 10
+  roamChangeDirFloat: 7.01
+  attackRange: 30
   enemyType: {fileID: 8990246100065831551}
-  attackCooldown: 2
+  attackCooldown: 0.46
   stopMovingWhileAttacking: 0
 --- !u!114 &6414626479442072272
 MonoBehaviour:
@@ -123,7 +123,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cc057ede1120b741b06c98e1accec3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
+  moveSpeed: 6.98
 --- !u!114 &3387107529697824268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,7 +193,7 @@ MonoBehaviour:
   bulletPrefab: {fileID: 7701647174424757238, guid: 4ab76f6648b93fd45b6fba651ac387a2, type: 3}
   bulletMoveSpeed: 20
   burstCount: 1
-  projectilesPerBurst: 4
+  projectilesPerBurst: 5
   angleSpread: 10
   startingDistance: 1
   timeBetweenBursts: 1

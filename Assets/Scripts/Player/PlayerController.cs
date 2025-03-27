@@ -105,11 +105,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
         
-        // Get mouse position to determine if player is running forwards or backwards
-        Vector3 mousePosition = Input.mousePosition;
-        Vector3 playerScreenPoint = Camera.main.WorldToScreenPoint(transform.position);
-        bool mouseIsLeft = mousePosition.x < playerScreenPoint.x;
-        
         // Determine the most dominant direction (up, down, left, right)
         float absX = Mathf.Abs(movement.x);
         float absY = Mathf.Abs(movement.y);
@@ -120,14 +115,12 @@ public class PlayerController : MonoBehaviour
             if (movement.x > 0)
             {
                 // Moving right
-                // If mouse is on left, we're running backward, otherwise forward
-                currentDirection = mouseIsLeft ? FacingDirection.Left : FacingDirection.Right;
+                currentDirection = FacingDirection.Right;
             }
             else
             {
                 // Moving left
-                // If mouse is on right, we're running backward, otherwise forward
-                currentDirection = !mouseIsLeft ? FacingDirection.Right : FacingDirection.Left;
+                currentDirection = FacingDirection.Left;
             }
         }
         else
@@ -141,17 +134,22 @@ public class PlayerController : MonoBehaviour
 
     private void AdjustPlayerFacing()
     {
-        Vector3 mousePosition = Input.mousePosition;
-        Vector3 playerScreenPoint = Camera.main.WorldToScreenPoint(transform.position);
-
         // Only update flip state when not running or at the start of run
         bool isMoving = movement.magnitude > 0.1f;
         bool isShootingAnimation = currentAnimation != null && currentAnimation.Contains("shoot");
         
-        // Don't flip during running animations
-        if (!isMoving || (currentAnimation == null) || (!currentAnimation.StartsWith("run_") && !isShootingAnimation))
+        // If moving, flip based on movement direction
+        if (isMoving && movement.x != 0)
         {
-            // Reverse the flipping logic
+            spriteRenderer.flipX = (movement.x > 0);
+            FacingLeft = (movement.x < 0);
+        }
+        // If not moving, use mouse position to determine facing
+        else if (!isMoving || (currentAnimation == null) || (!currentAnimation.StartsWith("run_") && !isShootingAnimation))
+        {
+            Vector3 mousePosition = Input.mousePosition;
+            Vector3 playerScreenPoint = Camera.main.WorldToScreenPoint(transform.position);
+            
             if (mousePosition.x < playerScreenPoint.x)
             {
                 spriteRenderer.flipX = false;
