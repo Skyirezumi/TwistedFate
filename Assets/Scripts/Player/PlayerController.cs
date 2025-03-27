@@ -25,6 +25,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private CardThrower cardThrower;
 
     private bool isDashing = false;
+    private bool isShooting = false;
+    
+    // Direction states
+    private enum FacingDirection
+    {
+        Front,
+        Back,
+        Left,
+        Right
+    }
+    
+    private FacingDirection currentDirection = FacingDirection.Front;
+    private string currentAnimation;
 
     private Animator animator;
     // Start is called before the first frame update
@@ -52,6 +65,7 @@ public class PlayerController : MonoBehaviour
     {
         playerControls.Combat.Dash.performed += _ => Dash();
         playerControls.Combat.ThrowCard.performed += _ => ThrowCard();
+        PlayAnimation("idle_front");
     }
 
     private void FixedUpdate()
@@ -63,14 +77,66 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         PlayerInput();
+        DeterminePlayerDirection();
         AdjustPlayerFacing();
+        UpdateAnimationState();
+        
+        // Debug
+        if (movement.magnitude < 0.1f && currentAnimation != null && currentAnimation.StartsWith("run_"))
+        {
+            Debug.LogWarning("Should stop running but animation is: " + currentAnimation);
+        }
     }
 
     private void PlayerInput()
     {
         movement = playerControls.Movement.Move.ReadValue<Vector2>();
+        // Restore these in case pickups rely on them
         animator.SetFloat("MoveX", movement.x);
         animator.SetFloat("MoveY", movement.y);
+    }
+    
+    private void DeterminePlayerDirection()
+    {
+        // Determine the dominant direction for animation purposes
+        if (movement.magnitude < 0.1f)
+        {
+            // Don't change direction when idle
+            return;
+        }
+        
+        // Get mouse position to determine if player is running forwards or backwards
+        Vector3 mousePosition = Input.mousePosition;
+        Vector3 playerScreenPoint = Camera.main.WorldToScreenPoint(transform.position);
+        bool mouseIsLeft = mousePosition.x < playerScreenPoint.x;
+        
+        // Determine the most dominant direction (up, down, left, right)
+        float absX = Mathf.Abs(movement.x);
+        float absY = Mathf.Abs(movement.y);
+        
+        if (absX > absY)
+        {
+            // Horizontal movement dominates
+            if (movement.x > 0)
+            {
+                // Moving right
+                // If mouse is on left, we're running backward, otherwise forward
+                currentDirection = mouseIsLeft ? FacingDirection.Left : FacingDirection.Right;
+            }
+            else
+            {
+                // Moving left
+                // If mouse is on right, we're running backward, otherwise forward
+                currentDirection = !mouseIsLeft ? FacingDirection.Right : FacingDirection.Left;
+            }
+        }
+        else
+        {
+            if (movement.y > 0)
+                currentDirection = FacingDirection.Back;
+            else
+                currentDirection = FacingDirection.Front;
+        }
     }
 
     private void AdjustPlayerFacing()
@@ -78,14 +144,124 @@ public class PlayerController : MonoBehaviour
         Vector3 mousePosition = Input.mousePosition;
         Vector3 playerScreenPoint = Camera.main.WorldToScreenPoint(transform.position);
 
-        if (mousePosition.x < playerScreenPoint.x)
+        // Only update flip state when not running or at the start of run
+        bool isMoving = movement.magnitude > 0.1f;
+        bool isShootingAnimation = currentAnimation != null && currentAnimation.Contains("shoot");
+        
+        // Don't flip during running animations
+        if (!isMoving || (currentAnimation == null) || (!currentAnimation.StartsWith("run_") && !isShootingAnimation))
         {
-            spriteRenderer.flipX = true;
+            // Reverse the flipping logic
+            if (mousePosition.x < playerScreenPoint.x)
+            {
+                spriteRenderer.flipX = false;
+                FacingLeft = true;
+            }
+            else
+            {
+                spriteRenderer.flipX = true;
+                FacingLeft = false;
+            }
         }
+    }
+    
+    private void UpdateAnimationState()
+    {
+        bool isMoving = movement.magnitude > 0.1f;
+        
+        // Force stop running animation when player stops moving
+        if (!isMoving)
+        {
+            if (currentAnimation != null && currentAnimation.StartsWith("run_"))
+            {
+                Debug.Log("Forcing idle because movement stopped: " + movement.magnitude);
+                PlayAnimation(GetIdleAnimationName());
+                return;
+            }
+        }
+        
+        // Determine what animation to play based on state
+        string animationName = GetAnimationName();
+        
+        // Only change animation if different from current
+        if (animationName != currentAnimation)
+        {
+            PlayAnimation(animationName);
+            Debug.Log("Playing animation: " + animationName);
+        }
+    }
+
+    private string GetAnimationName()
+    {
+        bool isMoving = movement.magnitude > 0.1f;
+        
+        // Determine base animation name
+        string baseName = "";
+        
+        // If running and shooting, use the combined animation
+        if (isMoving && isShooting)
+        {
+            baseName = "running_shoot_";
+            Debug.Log("Should be playing running_shoot animation");
+        }
+        // If just shooting
+        else if (isShooting)
+        {
+            baseName = "shoot_";
+        }
+        // If running
+        else if (isMoving)
+        {
+            baseName = "run_";
+        }
+        // Idle state
         else
         {
-            spriteRenderer.flipX = false;
+            return GetIdleAnimationName();
         }
+        
+        // Add direction suffix
+        switch (currentDirection)
+        {
+            case FacingDirection.Front:
+                return baseName + "front";
+            case FacingDirection.Back:
+                return baseName + "back";
+            case FacingDirection.Left:
+                return baseName + "left";
+            case FacingDirection.Right:
+                return baseName + "right";
+        }
+        
+        return "idle_front"; // Default
+    }
+    
+    private string GetIdleAnimationName()
+    {
+        // Special case for idle back, which has a different name
+        if (currentDirection == FacingDirection.Back)
+            return "idleback";
+            
+        // Regular idle animations
+        switch (currentDirection)
+        {
+            case FacingDirection.Front:
+                return "idle_front";
+            case FacingDirection.Left:
+                return "idle_left";
+            case FacingDirection.Right:
+                return "idle_right";
+            default:
+                return "idle_front";
+        }
+    }
+    
+    private void PlayAnimation(string animationName)
+    {
+        // Play the animation using the proper state path format
+        // The format should be "Base Layer.StateName" instead of just "StateName"
+        animator.Play("Base Layer." + animationName, 0);
+        currentAnimation = animationName;
     }
 
     private void Dash()
@@ -111,10 +287,23 @@ public class PlayerController : MonoBehaviour
         if (cardThrower != null)
         {
             cardThrower.TriggerThrowCard();
+            StartCoroutine(ShootAnimationRoutine());
         }
         else
         {
             Debug.LogWarning("CardThrower component not assigned to PlayerController!");
         }
+    }
+    
+    private IEnumerator ShootAnimationRoutine()
+    {
+        // Set shooting animation state
+        isShooting = true;
+        
+        // Wait for animation to complete
+        yield return new WaitForSeconds(0.3f); // Adjust timing based on animation length
+        
+        // Reset shooting state
+        isShooting = false;
     }
 }

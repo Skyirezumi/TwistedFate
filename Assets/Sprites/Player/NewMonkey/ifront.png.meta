@@ -1,0 +1,1988 @@
+fileFormatVersion: 2
+guid: 769183c6b412b004db495e8c2247288a
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 22
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 16384
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ifront_0
+      rect:
+        serializedVersion: 2
+        x: 23
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 78db035a374fed9428b1b4e419f4eb21
+      internalID: 1722214035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_1
+      rect:
+        serializedVersion: 2
+        x: 88
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd3cf9f3eeafac74aba1c180172bd6df
+      internalID: 982151210
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_2
+      rect:
+        serializedVersion: 2
+        x: 153
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6120be8e2e9c29b4a8e4b853a4bfb194
+      internalID: -22205756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_3
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7a99e83b4c2c2ab4db6a2e9c84e726f7
+      internalID: -99731458
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_4
+      rect:
+        serializedVersion: 2
+        x: 283
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1a8ead9dbc1c04c44a141e978db01cbd
+      internalID: -1458527526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_5
+      rect:
+        serializedVersion: 2
+        x: 348
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 497d8eb34a2da4740aaeb9bcb6e15bd7
+      internalID: -1409535125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_6
+      rect:
+        serializedVersion: 2
+        x: 413
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0e296eded3009d84892abd94ce8d1e67
+      internalID: 1531070529
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_7
+      rect:
+        serializedVersion: 2
+        x: 478
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71b8743b7c40faa4b9c04c28b8fd8e44
+      internalID: -847420240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_8
+      rect:
+        serializedVersion: 2
+        x: 543
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7792773b16f20514095c6131a2b7e80b
+      internalID: -1818351904
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_9
+      rect:
+        serializedVersion: 2
+        x: 608
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3a54570fac16c74a82e252a5d372be2
+      internalID: -1860152697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_10
+      rect:
+        serializedVersion: 2
+        x: 673
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f930bbdec580c04da70e6e23d560f04
+      internalID: 799246933
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_11
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 040a3ab89feecf74e820e8a5eeb8f467
+      internalID: 1325567233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_12
+      rect:
+        serializedVersion: 2
+        x: 803
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0598892008e47f74d83c4c08fbc81ca3
+      internalID: -616497402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_13
+      rect:
+        serializedVersion: 2
+        x: 868
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6fdfa7ff256dfe748b836a0dd2df9b58
+      internalID: -360520295
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_14
+      rect:
+        serializedVersion: 2
+        x: 933
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c01cf037463a9864bad4f9bcd7f43a95
+      internalID: -2146528406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_15
+      rect:
+        serializedVersion: 2
+        x: 998
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5a047da9f2182604e9ce8abae8c4b6bd
+      internalID: -982773690
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_16
+      rect:
+        serializedVersion: 2
+        x: 1063
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d75e25d378e78824a93976ffef7345fb
+      internalID: -43936942
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_17
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c454bd87a4453ab409d7448f31e2821b
+      internalID: 220710565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_18
+      rect:
+        serializedVersion: 2
+        x: 1193
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 318f25f10800214458ce36f775323216
+      internalID: -124769439
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_19
+      rect:
+        serializedVersion: 2
+        x: 1258
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 508a6ca5406379a498e585b36c129ea6
+      internalID: -2109893202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_20
+      rect:
+        serializedVersion: 2
+        x: 1323
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b14aafd4aafee904bb9a7a3dec4c124b
+      internalID: -469716084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_21
+      rect:
+        serializedVersion: 2
+        x: 1388
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7f777ec740d598c4bbaa4d16a4cf3d66
+      internalID: -1070402350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_22
+      rect:
+        serializedVersion: 2
+        x: 1453
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb981737d4749004ebd7893b6984fe06
+      internalID: 1978514354
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_23
+      rect:
+        serializedVersion: 2
+        x: 1518
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e50eaaca762baa9488218cfcbb48d5aa
+      internalID: -829749286
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_24
+      rect:
+        serializedVersion: 2
+        x: 1582
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c939b57481517c34f9bb442f5b2352a1
+      internalID: 1545797514
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_25
+      rect:
+        serializedVersion: 2
+        x: 1647
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 630a857b2aa3ab147a432491a74c6e0e
+      internalID: 1302772405
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_26
+      rect:
+        serializedVersion: 2
+        x: 1712
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa8715d933f6b344aa63042223b3053f
+      internalID: -568123975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_27
+      rect:
+        serializedVersion: 2
+        x: 1777
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a79abfce131e0b14f863bf195d745682
+      internalID: -1004519203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_28
+      rect:
+        serializedVersion: 2
+        x: 1842
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 72fc5d692b791474dbd50a1406ae4f15
+      internalID: 398355464
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_29
+      rect:
+        serializedVersion: 2
+        x: 1907
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37543a47bbb560d46a4eb3b197bb5b39
+      internalID: 1974932459
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_30
+      rect:
+        serializedVersion: 2
+        x: 1972
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: affab0f728f917145aab90062b6b2851
+      internalID: 1853861347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_31
+      rect:
+        serializedVersion: 2
+        x: 2037
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c9adffd6bdff3ae4f8c87dbcba75e2b1
+      internalID: 296628063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_32
+      rect:
+        serializedVersion: 2
+        x: 2102
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5e9cc5cfead94e849ba5f4e4aaffb43e
+      internalID: -1951740264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_33
+      rect:
+        serializedVersion: 2
+        x: 2167
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 27b521692f9223a4eae872c96378071e
+      internalID: -2066530360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_34
+      rect:
+        serializedVersion: 2
+        x: 2232
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5fd9b1131e51e124098812dd604a9744
+      internalID: 2112858182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_35
+      rect:
+        serializedVersion: 2
+        x: 2297
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cccd774a4854a584193f3ca3cc450846
+      internalID: -266116583
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_36
+      rect:
+        serializedVersion: 2
+        x: 2363
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4d7cc50b7d23b5f4b818aae52cd017e3
+      internalID: 301893646
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_37
+      rect:
+        serializedVersion: 2
+        x: 2428
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dbbed2767578df846a9ac29dddd71b27
+      internalID: -107186227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_38
+      rect:
+        serializedVersion: 2
+        x: 2493
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dad03cee83c3e0b48b4466a6fb5c857a
+      internalID: -900011010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_39
+      rect:
+        serializedVersion: 2
+        x: 2558
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 682cafacee100874893ee96da5900576
+      internalID: -1542397566
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_40
+      rect:
+        serializedVersion: 2
+        x: 2623
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57d37e9ca9cd48f4dbbcdd94cc077a55
+      internalID: 1559580262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_41
+      rect:
+        serializedVersion: 2
+        x: 2688
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 33961cb7689670646a0c3dbd3bc5e3a2
+      internalID: -153391348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_42
+      rect:
+        serializedVersion: 2
+        x: 2753
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5b34f062cdf3d8e4dab99557f7d74afe
+      internalID: -1545521877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_43
+      rect:
+        serializedVersion: 2
+        x: 2818
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e7543cfa576d1d842a162df83ffc60b3
+      internalID: 1408939938
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_44
+      rect:
+        serializedVersion: 2
+        x: 2883
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ff551b91c956554e81a320812601744
+      internalID: 1932597117
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_45
+      rect:
+        serializedVersion: 2
+        x: 2947
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5283c6b8fd5082b41935eb962920f38b
+      internalID: 278395097
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_46
+      rect:
+        serializedVersion: 2
+        x: 3012
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a72ecac723b7cbf4996059d3940b757d
+      internalID: -1943777524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_47
+      rect:
+        serializedVersion: 2
+        x: 3077
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ac3ed17a068287448b43cb7d6d27170
+      internalID: 12081928
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_48
+      rect:
+        serializedVersion: 2
+        x: 3142
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aa389c44bbbf7e842ac08b862fdbc8a0
+      internalID: 1140056905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_49
+      rect:
+        serializedVersion: 2
+        x: 3207
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5f17b2cff60e8a44b8560d2b5aedba5f
+      internalID: 1076534284
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_50
+      rect:
+        serializedVersion: 2
+        x: 3273
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9df0089cfc0cf9642a2bf4ca0dcc5a85
+      internalID: -557695184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_51
+      rect:
+        serializedVersion: 2
+        x: 3338
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4fd338f6eff143948b7c558d9974cf95
+      internalID: -367572229
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_52
+      rect:
+        serializedVersion: 2
+        x: 3403
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 587bb499b5f269141a7d9aff0fe829c2
+      internalID: -1296598233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_53
+      rect:
+        serializedVersion: 2
+        x: 3468
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b8613ca65c578a045b0d15b6c7bf2051
+      internalID: -1771206153
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_54
+      rect:
+        serializedVersion: 2
+        x: 3533
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 44edfbfd4aa8f6047a476dfe89eaa572
+      internalID: 1742696147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_55
+      rect:
+        serializedVersion: 2
+        x: 3598
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8c126103c4a1dd94ca225f0d1bc41860
+      internalID: 421157865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_56
+      rect:
+        serializedVersion: 2
+        x: 3663
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce4df39aa7fe07e4e88d3a1e6740e1e1
+      internalID: 83183670
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_57
+      rect:
+        serializedVersion: 2
+        x: 3728
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9a654b87ca97b724cbaf3c001b9e4155
+      internalID: 1749875380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_58
+      rect:
+        serializedVersion: 2
+        x: 3793
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bf834f46738aa0a40820784bd4a482e2
+      internalID: 1318752389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_59
+      rect:
+        serializedVersion: 2
+        x: 3858
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0fff76a3d151f5419f7c28feda34752
+      internalID: -276852537
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_60
+      rect:
+        serializedVersion: 2
+        x: 3923
+        y: 9
+        width: 18
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b0872b16bfae1824cac0e15504922340
+      internalID: 318019176
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_61
+      rect:
+        serializedVersion: 2
+        x: 3987
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dcf0911563fbf464e8fa1f560eaf6ae8
+      internalID: 1655680473
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_62
+      rect:
+        serializedVersion: 2
+        x: 4052
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4349d6a6bf09a81479959c2c8bad0425
+      internalID: -48418996
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_63
+      rect:
+        serializedVersion: 2
+        x: 4117
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b7271292e51d7a144aabdae43819e078
+      internalID: 1623425462
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_64
+      rect:
+        serializedVersion: 2
+        x: 4182
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c412381fa66ca4547ba8c5f447f7464c
+      internalID: 1879791361
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_65
+      rect:
+        serializedVersion: 2
+        x: 4247
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ad35d2e3a31adac499772f1381b6f2f9
+      internalID: -1753467195
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_66
+      rect:
+        serializedVersion: 2
+        x: 4312
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e9514736a9f66d24481a33a3b6c2a7ac
+      internalID: -2069172189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_67
+      rect:
+        serializedVersion: 2
+        x: 4377
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f9950aa42100bfb4f9aafec07b720482
+      internalID: -2060907299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_68
+      rect:
+        serializedVersion: 2
+        x: 4442
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10b8cf3c7b7171b4794e66727562fcb5
+      internalID: -323187978
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_69
+      rect:
+        serializedVersion: 2
+        x: 4507
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57581b3d2b9a28f429711d8ddd68ce5f
+      internalID: -330391764
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_70
+      rect:
+        serializedVersion: 2
+        x: 4572
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e00e4cd1cfefcde47a62ec671179a288
+      internalID: -1075806032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_71
+      rect:
+        serializedVersion: 2
+        x: 4637
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a7a8ee4980e04084a8ffdd4bf8ec1ad5
+      internalID: 1639612823
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_72
+      rect:
+        serializedVersion: 2
+        x: 4703
+        y: 9
+        width: 19
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77c55419d77166947b7a75517a079234
+      internalID: 1741225490
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_73
+      rect:
+        serializedVersion: 2
+        x: 4767
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a45913f262388d2428d1671b2648ecca
+      internalID: -2035160452
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_74
+      rect:
+        serializedVersion: 2
+        x: 4832
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 408b5f623d7353d4ca19baff139c6dae
+      internalID: 1848001818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_75
+      rect:
+        serializedVersion: 2
+        x: 4897
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b923b20f93efd94c8a5c78325858095
+      internalID: 1259716613
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_76
+      rect:
+        serializedVersion: 2
+        x: 4962
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5f67a75ca68aaf478e2c377bfb2e3fe
+      internalID: 1271486880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_77
+      rect:
+        serializedVersion: 2
+        x: 5027
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2afd08997db2d5a42809f3a78727d663
+      internalID: 787309431
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_78
+      rect:
+        serializedVersion: 2
+        x: 5092
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: db524f3683551f144a25f1fffeafb56b
+      internalID: 697521818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_79
+      rect:
+        serializedVersion: 2
+        x: 5157
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e384925aa4cbf1f4f96f5dbbe7a68cac
+      internalID: -1658612871
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_80
+      rect:
+        serializedVersion: 2
+        x: 5222
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0a01b05e4900f8f47b31a4198be39e97
+      internalID: -273407665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_81
+      rect:
+        serializedVersion: 2
+        x: 5287
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6b552f0967024de4489a9aa9b6875ce8
+      internalID: -495249577
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_82
+      rect:
+        serializedVersion: 2
+        x: 5352
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8fd2589b49798214ea87f1e8f7883b35
+      internalID: -614504971
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ifront_83
+      rect:
+        serializedVersion: 2
+        x: 5417
+        y: 9
+        width: 20
+        height: 47
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a186c5142bbd65441800ee17068fcbf1
+      internalID: -1659984243
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      ifront_0: 1722214035
+      ifront_1: 982151210
+      ifront_10: 799246933
+      ifront_11: 1325567233
+      ifront_12: -616497402
+      ifront_13: -360520295
+      ifront_14: -2146528406
+      ifront_15: -982773690
+      ifront_16: -43936942
+      ifront_17: 220710565
+      ifront_18: -124769439
+      ifront_19: -2109893202
+      ifront_2: -22205756
+      ifront_20: -469716084
+      ifront_21: -1070402350
+      ifront_22: 1978514354
+      ifront_23: -829749286
+      ifront_24: 1545797514
+      ifront_25: 1302772405
+      ifront_26: -568123975
+      ifront_27: -1004519203
+      ifront_28: 398355464
+      ifront_29: 1974932459
+      ifront_3: -99731458
+      ifront_30: 1853861347
+      ifront_31: 296628063
+      ifront_32: -1951740264
+      ifront_33: -2066530360
+      ifront_34: 2112858182
+      ifront_35: -266116583
+      ifront_36: 301893646
+      ifront_37: -107186227
+      ifront_38: -900011010
+      ifront_39: -1542397566
+      ifront_4: -1458527526
+      ifront_40: 1559580262
+      ifront_41: -153391348
+      ifront_42: -1545521877
+      ifront_43: 1408939938
+      ifront_44: 1932597117
+      ifront_45: 278395097
+      ifront_46: -1943777524
+      ifront_47: 12081928
+      ifront_48: 1140056905
+      ifront_49: 1076534284
+      ifront_5: -1409535125
+      ifront_50: -557695184
+      ifront_51: -367572229
+      ifront_52: -1296598233
+      ifront_53: -1771206153
+      ifront_54: 1742696147
+      ifront_55: 421157865
+      ifront_56: 83183670
+      ifront_57: 1749875380
+      ifront_58: 1318752389
+      ifront_59: -276852537
+      ifront_6: 1531070529
+      ifront_60: 318019176
+      ifront_61: 1655680473
+      ifront_62: -48418996
+      ifront_63: 1623425462
+      ifront_64: 1879791361
+      ifront_65: -1753467195
+      ifront_66: -2069172189
+      ifront_67: -2060907299
+      ifront_68: -323187978
+      ifront_69: -330391764
+      ifront_7: -847420240
+      ifront_70: -1075806032
+      ifront_71: 1639612823
+      ifront_72: 1741225490
+      ifront_73: -2035160452
+      ifront_74: 1848001818
+      ifront_75: 1259716613
+      ifront_76: 1271486880
+      ifront_77: 787309431
+      ifront_78: 697521818
+      ifront_79: -1658612871
+      ifront_8: -1818351904
+      ifront_80: -273407665
+      ifront_81: -495249577
+      ifront_82: -614504971
+      ifront_83: -1659984243
+      ifront_9: -1860152697
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

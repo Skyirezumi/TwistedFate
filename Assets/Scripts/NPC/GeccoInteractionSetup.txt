@@ -1,0 +1,33 @@
+GECCO NPC INTERACTION SETUP GUIDE
+
+Follow these steps to set up the Gecco NPC interaction:
+
+1. Select the "Gecco NPC" GameObject in your scene or prefab.
+
+2. Add the GeccoInteraction script to the Gecco NPC GameObject:
+   - In the Inspector window, click "Add Component"
+   - Search for "GeccoInteraction" and add it
+
+3. Configure the GeccoInteraction script parameters:
+   - Interaction Prompt: Drag the "Interaction" child GameObject from Gecco NPC
+   - Interaction Range: Set to desired detection distance (default: 3)
+   - Spawn Cooldown: Set the cooldown between boss spawns in seconds (default: 10)
+   - Boss Prefabs: Add references to your 4 boss prefabs (from Assets/Prefabs/Enemy/Bosses/):
+     * Mouse of Death
+     * Scorpion of Death
+     * Goldfish of Death
+     * Hedgehog of Death
+   - Spawn Distance From Player: Set distance for boss spawning (default: 5)
+
+4. Make sure the Interaction child object has:
+   - A SpriteRenderer component with the "E" key sprite assigned
+   - Is positioned above Gecco's head
+
+5. Test the functionality:
+   - Enter play mode
+   - Approach Gecco - the E prompt should appear
+   - Press E to spawn a random boss
+   - Check that the cooldown works and prevents spam
+   - Verify the boss spawns at a reasonable distance
+
+Note: You can adjust the interaction range by modifying the interactionRange value in the GeccoInteraction script. You can visualize this range in the Scene view (yellow circle) when Gecco is selected. 

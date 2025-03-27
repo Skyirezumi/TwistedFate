@@ -1,0 +1,53 @@
+DIRECTIONAL INDICATOR SETUP GUIDE
+
+This system creates arrows that rotate around the player (or a specified pivot) in world space, pointing toward boss enemies.
+
+1. Create an Arrow Sprite:
+   - Create a new GameObject with a sprite renderer component
+   - Make sure the arrow sprite points UPWARD (points along positive Y axis)
+   - Adjust the scale to fit nicely around the player
+   - Save it as a prefab in your project (e.g., in Assets/Prefabs/UI/)
+
+2. Create the DirectionalIndicator Manager:
+   - Create an empty GameObject named "DirectionalIndicator" in your scene
+   - Add the DirectionalIndicator script to it
+   - Configure in the Inspector:
+     * Arrow Prefab: Drag your arrow sprite prefab here
+     * Indicator Radius: Set how far from the pivot the arrows should appear (default: 1)
+     * Vertical Offset: Adjust height of arrows relative to pivot (default: 0.5)
+     * Pivot Transform: (Optional) Custom transform around which arrows rotate
+       - Leave empty to use the player as the pivot
+     * Arrow Angle Offset: Set to -90 if your arrow points up (the default)
+       - Adjust this if your arrow sprite points in a different direction
+
+3. Make Bosses Trackable:
+   A. Automatic Method (via Gecco spawning):
+   - Bosses spawned by Gecco will automatically be registered with the DirectionalIndicator
+   - No additional setup needed for bosses spawned by Gecco
+
+   B. Manual Method (for pre-placed bosses):
+   - Select any boss GameObject in your scene
+   - Add the TrackableEnemy component
+
+4. Test the functionality:
+   - Enter play mode
+   - Approach Gecco and press E to spawn a boss
+   - An arrow should appear around the player/pivot pointing toward the spawned boss
+   - The arrow should follow the player and rotate to always point to the boss
+
+Customization Options:
+- Change the arrow sprite to a different design
+- Adjust the indicator radius to make arrows appear closer or further from pivot
+- Modify the vertical offset to adjust the height of the arrows
+- Specify a custom pivot transform if you don't want to use the player
+
+Troubleshooting:
+- If arrows don't appear, check that the DirectionalIndicator GameObject is active
+- Make sure the arrow prefab has a sprite renderer with an assigned sprite
+- If arrows point in the wrong direction, adjust the Arrow Angle Offset:
+  * For an arrow that points up (↑): use -90
+  * For an arrow that points right (→): use 0
+  * For an arrow that points down (↓): use 90
+  * For an arrow that points left (←): use 180
+
+Note: Since the arrows are positioned in world space, make sure their Z position matches your game's 2D plane. 

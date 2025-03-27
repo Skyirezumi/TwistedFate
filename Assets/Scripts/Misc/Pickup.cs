@@ -20,6 +20,7 @@ public class Pickup : MonoBehaviour
 
     private Vector3 moveDir;
     private Rigidbody2D rb;
+    private Collider2D playerCollider;
 
     private void Awake() {
         rb = GetComponent<Rigidbody2D>();
@@ -27,10 +28,21 @@ public class Pickup : MonoBehaviour
 
     private void Start() {
         StartCoroutine(AnimCurveSpawnRoutine());
+        // Find the player's collider to use its bounds center
+        playerCollider = PlayerController.Instance.GetComponent<Collider2D>();
+        if (playerCollider == null) {
+            Debug.LogError("Player collider not found!");
+        }
     }
 
     private void Update() {
-        Vector3 playerPos = PlayerController.Instance.transform.position;
+        // Use the player collider's center for distance checking if available
+        Vector3 playerPos;
+        if (playerCollider != null) {
+            playerPos = playerCollider.bounds.center;
+        } else {
+            playerPos = PlayerController.Instance.transform.position;
+        }
 
         if (Vector3.Distance(transform.position, playerPos) < pickUpDistance) {
             moveDir = (playerPos - transform.position).normalized;

@@ -1,0 +1,40 @@
+DIALOG SYSTEM SETUP GUIDE
+
+Follow these steps to set up the dialog system for Gecco's boss spawning:
+
+1. Dialog Container Setup:
+   - Select the "Dialog Container" GameObject in your scene hierarchy
+   - Make sure it has a Canvas Group component (Add one if missing)
+   - Ensure it has a TextMeshProUGUI component for text display
+   - Add the DialogManager script to this GameObject
+
+2. GeccoInteraction Script Configuration:
+   - In the Gecco NPC's Inspector, find the GeccoInteraction component
+   - Under "Dialog Settings", drag the Dialog Container GameObject to the "Dialog Container" field
+   - Under "Boss Settings", configure the boss-dialog pairs:
+     * Click the "+" button to add a new boss-dialog pair for each boss
+     * For each pair, drag a boss prefab to the "Boss Prefab" field
+     * Enter the dialog text you want to show when that boss is spawned
+     * Example pairs:
+       - Mouse of Death: "You Fucked up son... I released the Mouse of Death!"
+       - Scorpion of Death: "The Scorpion of Death has been summoned!"
+       - Goldfish of Death: "You're gonna need a bigger boat. The Goldfish of Death is here!"
+       - Hedgehog of Death: "Gotta go fast! The Hedgehog of Death is after you!"
+
+3. Test the functionality:
+   - Enter play mode
+   - Approach Gecco and press E to spawn a boss
+   - The dialog should appear with a typewriter effect
+   - The dialog text should match the spawned boss
+   - The dialog should automatically fade out after 3 seconds
+
+Customization Options:
+- You can adjust the typewriter speed, fade speed, and display duration in the DialogManager component
+- Add or modify boss-dialog pairs to change which bosses can be spawned and their messages
+- Change the spawn distance from player in the GeccoInteraction component
+- Make sure your Dialog Container has a CanvasGroup component for fade effects
+
+Troubleshooting:
+- If no dialog appears, check that Dialog Container is properly set up with DialogManager
+- If a boss spawns but no dialog appears, make sure dialog text is provided for that boss
+- If the wrong dialog appears, check that each boss prefab is correctly paired with its intended dialog
