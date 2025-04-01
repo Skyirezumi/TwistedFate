@@ -1,0 +1,65 @@
+# Setting Up the Animator for SlotMachineUI
+
+Follow these simple steps to create the Animator controller needed for the SlotMachineUI:
+
+## 1. Create the Animator Controller
+
+1. In the Project window, right-click in your Assets folder
+2. Select Create → Animator Controller
+3. Name it "SlotMachineUI_Animator"
+
+## 2. Set Up the Basic States
+
+1. Double-click the new controller to open the Animator window
+2. Right-click in the States area and select "Create State → Empty"
+3. Name it "Idle"
+4. Create two more states: "Spin" and "ShowResult"
+
+## 3. Set Up the Parameters
+
+1. In the Parameters tab (left side), click the "+" button
+2. Select "Trigger"
+3. Name it "Spin"
+4. Add another Trigger named "ShowResult"
+
+## 4. Set Up the Transitions
+
+1. Right-click on the "Idle" state and select "Make Transition"
+2. Click on the "Spin" state to create a transition
+3. Select the transition and in the Inspector:
+   - Set Transition Duration to 0.1
+   - Check "Has Exit Time" and set Exit Time to 0
+
+4. Right-click on the "Spin" state and select "Make Transition"
+5. Click on the "Idle" state to create a transition back
+6. Configure similar to the first transition
+
+7. Right-click on the "Idle" state and select "Make Transition"
+8. Click on the "ShowResult" state
+9. Configure similar to the other transitions
+
+10. Right-click on the "ShowResult" state and select "Make Transition"
+11. Click on the "Idle" state to return
+12. Configure similar to the other transitions
+
+## 5. Set Conditions
+
+1. Select the transition from Idle to Spin
+2. In the Inspector, click "+" under Conditions
+3. Select "Spin" parameter and set to "true"
+
+4. Select the transition from Idle to ShowResult
+5. Add condition: "ShowResult" = true
+
+## 6. Set the Default State
+
+1. Right-click on the "Idle" state
+2. Select "Set as Layer Default State"
+
+## 7. Assign to SlotMachineUI
+
+1. Select your SlotMachineUI GameObject in the Hierarchy
+2. In the Inspector, click "Add Component" and add "Animator"
+3. Drag your "SlotMachineUI_Animator" controller to the "Controller" field
+
+No need to create any animations - this simple state machine will just trigger the appropriate code in the SlotMachineUI script using the trigger parameters. 

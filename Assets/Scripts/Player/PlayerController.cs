@@ -404,6 +404,32 @@ public class PlayerController : MonoBehaviour
         }
     }
     
+    // STAT UPGRADE METHODS
+    
+    // Increase the player's maximum health
+    public void IncreaseMaxHealth(float amount)
+    {
+        maxHealth += amount;
+        currentHealth += amount; // Also heal the player by the same amount
+        
+        // Play heal effect if desired
+        Debug.Log($"Player max health increased to {maxHealth}");
+    }
+    
+    // Increase the player's movement speed
+    public void IncreaseMovementSpeed(float amount)
+    {
+        movementSpeed += amount;
+        Debug.Log($"Player movement speed increased to {movementSpeed}");
+    }
+    
+    // Increase the dash power/distance
+    public void IncreaseDashPower(float amount)
+    {
+        dashSpeed += amount;
+        Debug.Log($"Player dash power increased to {dashSpeed}");
+    }
+    
     // Add this method to test player death
     public void TestDeath()
     {

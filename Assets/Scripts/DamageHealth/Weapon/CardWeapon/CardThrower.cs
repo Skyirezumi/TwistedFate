@@ -28,12 +28,14 @@ public class CardThrower : MonoBehaviour
     [SerializeField] private float throwCooldown = 0.5f;
     [SerializeField] private float cardSpeed = 10f;
     [SerializeField] private AudioClip throwSound;
+    [SerializeField] private float cardSwitchCooldown = 1.0f;
     
     [Header("UI")]
     [SerializeField] private AudioClip cooldownEndSound;
     [SerializeField] private Image cooldownImage; // UI Image for cooldown indicator
     
     private bool canThrow = true;
+    private bool canSwitchCardType = true;
     private Camera mainCamera;
     private float currentCooldown;
     
@@ -211,5 +213,22 @@ public class CardThrower : MonoBehaviour
             // Update fill amount (1 = full, 0 = empty)
             cooldownImage.fillAmount = currentCooldown / throwCooldown;
         }
+    }
+    
+    private IEnumerator SwitchCooldownRoutine()
+    {
+        yield return new WaitForSeconds(cardSwitchCooldown);
+        canSwitchCardType = true;
+    }
+    
+    // Method for increasing card damage (called by SlotMachine)
+    public void IncreaseDamage(float amount)
+    {
+        // Increase damage for all card types
+        redCardStats.damage.baseValue += amount;
+        greenCardStats.damage.baseValue += amount;
+        blueCardStats.damage.baseValue += amount;
+        
+        Debug.Log($"Card damage increased! Red: {redCardStats.damage.baseValue}, Green: {greenCardStats.damage.baseValue}, Blue: {blueCardStats.damage.baseValue}");
     }
 } 
