@@ -92,6 +92,27 @@ public class EnemyAI : MonoBehaviour
 
     private Vector2 GetRoamingPosition() {
         timeRoaming = 0f;
+        
+        if (PlayAreaManager.Instance != null) {
+            // Get a random direction but ensure it stays in play area
+            Vector2 randomDir = new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
+            
+            // Calculate a position that's within the play area
+            Vector2 currentPos = transform.position;
+            Vector2 targetPos = currentPos + randomDir;
+            
+            // Check if this position is within play area, if not, adjust
+            if (!PlayAreaManager.Instance.IsInPlayArea(targetPos)) {
+                // Get a position toward the center of the play area
+                Vector2 centerDir = PlayAreaManager.Instance.Center - (Vector2)currentPos;
+                
+                return centerDir.normalized;
+            }
+            
+            return randomDir;
+        }
+        
+        // Default behavior if no PlayAreaManager
         return new Vector2(Random.Range(-1f, 1f), Random.Range(-1f, 1f)).normalized;
     }
 }

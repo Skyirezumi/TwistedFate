@@ -13,6 +13,7 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private int maxHealth = 3;
     [SerializeField] private float knockBackThrustAmount = 10f;
     [SerializeField] private float damageRecoveryTime = 1f;
+    [SerializeField] private DeathScreen deathScreen;
 
     private Slider healthSlider;
     private int currentHealth;
@@ -69,12 +70,76 @@ public class PlayerHealth : MonoBehaviour
     }
 
     private void CheckIfPlayerDeath() {
-       
+        if (currentHealth <= 0) {
+            IsDead = true;
+            
+            // Try to access the DeathScreen singleton first
+            if (DeathScreen.Instance != null)
+            {
+                Debug.Log("Using DeathScreen singleton to show death screen");
+                DeathScreen.Instance.ShowDeathScreen();
+            }
+            // As fallback, try the serialized reference
+            else if (deathScreen != null) {
+                Debug.Log("Using serialized reference to show death screen");
+                deathScreen.ShowDeathScreen();
+            } 
+            else {
+                // Last resort: try FindObjectOfType
+                Debug.Log("Both Instance and reference are null, trying FindObjectOfType");
+                DeathScreen foundDeathScreen = FindObjectOfType<DeathScreen>();
+                if (foundDeathScreen != null) {
+                    Debug.Log("Found death screen via FindObjectOfType");
+                    foundDeathScreen.ShowDeathScreen();
+                } else {
+                    Debug.LogError("DeathScreen not found in the scene!");
+                }
+            }
+            
+            // Disable player components instead of destroying
+            DisablePlayerOnDeath();
+            
+            // Optional: Play death animation
+            Animator animator = GetComponent<Animator>();
+            if (animator != null) {
+                animator.SetTrigger(DEATH_HASH);
+            }
+        }
     }
 
-    private IEnumerator DeathLoadSceneRoutine() {
-        yield return new WaitForSeconds(2f);
-        Destroy(gameObject);
+    // New method to properly disable the player without destroying
+    private void DisablePlayerOnDeath()
+    {
+        // Disable player controller but keep the GameObject
+        PlayerController playerController = GetComponent<PlayerController>();
+        if (playerController != null) {
+            // Make sure the PlayerController also knows it's dead
+            playerController.SetDeadState(true);
+            
+            // Disable controller component
+            playerController.enabled = false;
+        }
+        
+        // Disable rigidbody to stop all movement
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null) {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = true;
+        }
+        
+        // Disable colliders to prevent further interactions
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
+        foreach (Collider2D collider in colliders) {
+            collider.enabled = false;
+        }
+        
+        // Optionally make the player slightly transparent
+        SpriteRenderer[] renderers = GetComponentsInChildren<SpriteRenderer>();
+        foreach (SpriteRenderer renderer in renderers) {
+            Color color = renderer.color;
+            color.a = 0.5f;
+            renderer.color = color;
+        }
     }
 
     private IEnumerator DamageRecoveryRoutine() {
@@ -89,5 +154,11 @@ public class PlayerHealth : MonoBehaviour
 
         healthSlider.maxValue = maxHealth;
         healthSlider.value = currentHealth;
+    }
+
+    // Method to test player death
+    public void TestPlayerDeath()
+    {
+        TakeDamage(maxHealth, transform);
     }
 }

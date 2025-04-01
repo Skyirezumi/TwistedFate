@@ -7,6 +7,7 @@ public class PlayerController : MonoBehaviour
     public static PlayerController Instance;
 
     public bool FacingLeft { get; set; }
+    public bool IsDead { get { return isDead; } }
 
     [SerializeField] private float movementSpeed = 10f;
     [SerializeField] private float dashSpeed = 4f;
@@ -40,6 +41,12 @@ public class PlayerController : MonoBehaviour
     private string currentAnimation;
 
     private Animator animator;
+
+    [Header("Health")]
+    [SerializeField] private float maxHealth = 100f;
+    private float currentHealth;
+    private bool isDead = false;
+
     // Start is called before the first frame update
 
     private void Awake()
@@ -49,6 +56,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        currentHealth = maxHealth;
     }
 
     private void OnEnable()
@@ -70,7 +78,43 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.MovePosition(rb.position + movement * movementSpeed * Time.fixedDeltaTime);
+        if (isDead) return;
+        
+        // Calculate the next position
+        Vector2 nextPosition = rb.position + movement * movementSpeed * Time.fixedDeltaTime;
+        
+        // Constrain to play area if PlayAreaManager exists
+        if (PlayAreaManager.Instance != null)
+        {
+            // Get current position and direction to center
+            Vector2 positionToCenter = rb.position - (Vector2)PlayAreaManager.Instance.Center;
+            float distanceToCenter = positionToCenter.magnitude;
+            
+            // If we're at the boundary and trying to move outward, cancel outward movement
+            if (distanceToCenter >= PlayAreaManager.Instance.Radius * 0.98f) // Allow a small buffer
+            {
+                // Calculate the normalized direction from center
+                Vector2 directionFromCenter = positionToCenter.normalized;
+                
+                // Get the dot product between movement and direction from center
+                float movingOutward = Vector2.Dot(movement.normalized, directionFromCenter);
+                
+                // If trying to move outward, project movement along the tangent only
+                if (movingOutward > 0)
+                {
+                    // Project movement vector onto tangent of the circle
+                    Vector2 tangent = new Vector2(-directionFromCenter.y, directionFromCenter.x);
+                    Vector2 tangentialMovement = Vector2.Dot(movement, tangent) * tangent;
+                    nextPosition = rb.position + tangentialMovement * movementSpeed * Time.fixedDeltaTime;
+                }
+            }
+            
+            // Final safety clamp
+            nextPosition = PlayAreaManager.Instance.ClampToPlayArea(nextPosition);
+        }
+        
+        // Apply the movement
+        rb.MovePosition(nextPosition);
     }
 
     // Update is called once per frame
@@ -90,6 +134,8 @@ public class PlayerController : MonoBehaviour
 
     private void PlayerInput()
     {
+        if (isDead) return;
+        
         movement = playerControls.Movement.Move.ReadValue<Vector2>();
         // Restore these in case pickups rely on them
         animator.SetFloat("MoveX", movement.x);
@@ -101,7 +147,7 @@ public class PlayerController : MonoBehaviour
         // Determine the dominant direction for animation purposes
         if (movement.magnitude < 0.1f)
         {
-            // Don't change direction when idle
+            // Keep the current direction when idle
             return;
         }
         
@@ -125,23 +171,29 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            // Vertical movement dominates
             if (movement.y > 0)
+            {
+                // Moving up
                 currentDirection = FacingDirection.Back;
+            }
             else
+            {
+                // Moving down
                 currentDirection = FacingDirection.Front;
+            }
         }
     }
 
     private void AdjustPlayerFacing()
     {
-        // Only update flip state when not running or at the start of run
+        // Only update facing direction when not running or at the start of run
         bool isMoving = movement.magnitude > 0.1f;
         bool isShootingAnimation = currentAnimation != null && currentAnimation.Contains("shoot");
         
-        // If moving, flip based on movement direction
+        // If moving, set facing direction based on movement
         if (isMoving && movement.x != 0)
         {
-            spriteRenderer.flipX = (movement.x > 0);
             FacingLeft = (movement.x < 0);
         }
         // If not moving, use mouse position to determine facing
@@ -150,16 +202,7 @@ public class PlayerController : MonoBehaviour
             Vector3 mousePosition = Input.mousePosition;
             Vector3 playerScreenPoint = Camera.main.WorldToScreenPoint(transform.position);
             
-            if (mousePosition.x < playerScreenPoint.x)
-            {
-                spriteRenderer.flipX = false;
-                FacingLeft = true;
-            }
-            else
-            {
-                spriteRenderer.flipX = true;
-                FacingLeft = false;
-            }
+            FacingLeft = (mousePosition.x < playerScreenPoint.x);
         }
     }
     
@@ -170,10 +213,11 @@ public class PlayerController : MonoBehaviour
         // Force stop running animation when player stops moving
         if (!isMoving)
         {
-            if (currentAnimation != null && currentAnimation.StartsWith("run_"))
+            if (currentAnimation != null && (currentAnimation.StartsWith("run_") || currentAnimation.StartsWith("running_shoot_")))
             {
-                Debug.Log("Forcing idle because movement stopped: " + movement.magnitude);
-                PlayAnimation(GetIdleAnimationName());
+                Debug.Log($"Stopping running animation. Current: {currentAnimation}, Movement: {movement}, IsMoving: {isMoving}");
+                string idleAnimation = GetIdleAnimationName();
+                PlayAnimation(idleAnimation);
                 return;
             }
         }
@@ -184,8 +228,8 @@ public class PlayerController : MonoBehaviour
         // Only change animation if different from current
         if (animationName != currentAnimation)
         {
+            Debug.Log($"Changing animation from {currentAnimation} to {animationName}. Movement: {movement}, IsMoving: {isMoving}");
             PlayAnimation(animationName);
-            Debug.Log("Playing animation: " + animationName);
         }
     }
 
@@ -200,7 +244,6 @@ public class PlayerController : MonoBehaviour
         if (isMoving && isShooting)
         {
             baseName = "running_shoot_";
-            Debug.Log("Should be playing running_shoot animation");
         }
         // If just shooting
         else if (isShooting)
@@ -236,30 +279,39 @@ public class PlayerController : MonoBehaviour
     
     private string GetIdleAnimationName()
     {
-        // Special case for idle back, which has a different name
-        if (currentDirection == FacingDirection.Back)
-            return "idleback";
-            
-        // Regular idle animations
+        // Regular idle animations for all directions
         switch (currentDirection)
         {
             case FacingDirection.Front:
-                return "idle_front";
+                return "Idle_front";
+            case FacingDirection.Back:
+                return "idle_back";
             case FacingDirection.Left:
                 return "idle_left";
             case FacingDirection.Right:
                 return "idle_right";
             default:
-                return "idle_front";
+                return "Idle_front";
         }
     }
     
     private void PlayAnimation(string animationName)
     {
-        // Play the animation using the proper state path format
-        // The format should be "Base Layer.StateName" instead of just "StateName"
-        animator.Play("Base Layer." + animationName, 0);
+        // Play the animation directly without the Base Layer prefix
+        animator.Play(animationName, 0);
         currentAnimation = animationName;
+
+        // Adjust animation speed based on movement speed
+        if (animationName.StartsWith("run_") || animationName.StartsWith("running_shoot_"))
+        {
+            // Set animation speed to match movement speed
+            animator.speed = movementSpeed / 10f; // 10f is the base movement speed
+        }
+        else
+        {
+            // Reset to normal speed for other animations
+            animator.speed = 1f;
+        }
     }
 
     private void Dash()
@@ -303,5 +355,58 @@ public class PlayerController : MonoBehaviour
         
         // Reset shooting state
         isShooting = false;
+    }
+
+    public void TakeDamage(float damage)
+    {
+        if (isDead) return;
+        
+        currentHealth -= damage;
+        
+        if (currentHealth <= 0)
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        SetDeadState(true);
+        
+        // Find and show the death screen
+        DeathScreen deathScreen = FindObjectOfType<DeathScreen>();
+        if (deathScreen != null)
+        {
+            deathScreen.ShowDeathScreen();
+        }
+        else
+        {
+            Debug.LogError("DeathScreen not found in the scene!");
+        }
+    }
+    
+    // Public method to set the dead state - can be called from PlayerHealth
+    public void SetDeadState(bool state)
+    {
+        isDead = state;
+        
+        // If dead, zero out movement to stop immediately
+        if (isDead)
+        {
+            movement = Vector2.zero;
+            
+            // Stop any ongoing animations
+            if (animator != null)
+            {
+                // Set trigger for death or play idle animation
+                PlayAnimation(GetIdleAnimationName());
+            }
+        }
+    }
+    
+    // Add this method to test player death
+    public void TestDeath()
+    {
+        TakeDamage(maxHealth);
     }
 }
