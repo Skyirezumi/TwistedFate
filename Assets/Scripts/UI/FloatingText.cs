@@ -1,93 +1,125 @@
-using System.Collections;
 using UnityEngine;
 using TMPro;
 
 public class FloatingText : MonoBehaviour
 {
     [SerializeField] private float floatSpeed = 1.0f;
-    [SerializeField] private float fadeSpeed = 0.5f;
-    [SerializeField] private float scaleSpeed = 0.5f;
-    [SerializeField] private float initialDelay = 0.2f;
-    [SerializeField] private float lifetime = 2.0f;
+    [SerializeField] private float duration = 5f;
     
-    private TextMeshPro textMesh;
-    private Vector3 initialScale;
-    private Color initialColor;
+    private TextMeshPro textComponent;
+    private float startTime;
+    private Color originalColor;
+    private Transform target; // Reference to the character to follow
+    private Vector3 offset; // Offset from the target
+    
+    public static FloatingText Create(GameObject prefab, Vector3 position, string text, Color color)
+    {
+        if (prefab == null)
+        {
+            Debug.LogError("FloatingText: Prefab is null!");
+            return null;
+        }
+        
+        // Create the text object closer to the character
+        Vector3 offset = Vector3.up * 0.2f; // Significantly lower height offset (from 0.8f to 0.2f)
+        GameObject instance = Instantiate(prefab, position + offset, Quaternion.identity);
+        
+        // Get components
+        FloatingText floater = instance.GetComponent<FloatingText>();
+        TextMeshPro tmp = instance.GetComponent<TextMeshPro>();
+        
+        if (floater == null || tmp == null)
+        {
+            Debug.LogError("FloatingText: Missing required components on prefab!");
+            Destroy(instance);
+            return null;
+        }
+        
+        // Store target to follow (usually the player)
+        if (PlayerController.Instance != null)
+        {
+            floater.target = PlayerController.Instance.transform;
+            floater.offset = offset; // Store initial offset
+        }
+        
+        // Set text and color
+        tmp.text = text;
+        tmp.color = color;
+        
+        // Set smaller font size
+        tmp.fontSize = 2.5f;
+        tmp.enableAutoSizing = true;
+        tmp.fontSizeMin = 1.5f;
+        tmp.fontSizeMax = 4f;
+        
+        // Reasonable outline
+        tmp.outlineWidth = 0.15f;
+        tmp.outlineColor = Color.black;
+        
+        // Normal scale
+        instance.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+        
+        // Make sure it faces the camera correctly (fix mirroring)
+        if (Camera.main != null)
+        {
+            // Look at camera instead of away from it
+            instance.transform.forward = Camera.main.transform.forward;
+        }
+        
+        // Destroy after duration
+        Destroy(instance, floater.duration);
+        
+        return floater;
+    }
     
     private void Awake()
     {
-        textMesh = GetComponent<TextMeshPro>();
-        if (textMesh == null)
+        textComponent = GetComponent<TextMeshPro>();
+        if (textComponent == null)
         {
-            Debug.LogError("FloatingText script requires a TextMeshPro component!");
-            Destroy(gameObject);
-            return;
+            Debug.LogError("FloatingText: No TextMeshPro component found!");
+            enabled = false;
         }
-        
-        initialScale = transform.localScale;
-        initialColor = textMesh.color;
-        
-        // Start with zero scale (for pop-in effect)
-        transform.localScale = Vector3.zero;
     }
     
     private void Start()
     {
-        StartCoroutine(AnimateText());
+        startTime = Time.time;
+        if (textComponent != null)
+        {
+            originalColor = textComponent.color;
+        }
     }
     
-    private IEnumerator AnimateText()
+    private void Update()
     {
-        // Initial delay
-        yield return new WaitForSeconds(initialDelay);
-        
-        // Pop-in effect
-        float popDuration = 0.2f;
-        float popTimer = 0f;
-        
-        while (popTimer < popDuration)
+        // Follow the target if available
+        if (target != null)
         {
-            popTimer += Time.deltaTime;
-            float progress = popTimer / popDuration;
-            transform.localScale = initialScale * Mathf.Sin(progress * Mathf.PI * 0.5f);
-            yield return null;
+            // Follow target position but maintain the offset which gradually rises
+            offset += Vector3.up * floatSpeed * Time.deltaTime;
+            transform.position = target.position + offset;
+        }
+        else
+        {
+            // Otherwise just float upward
+            transform.Translate(Vector3.up * floatSpeed * Time.deltaTime);
         }
         
-        transform.localScale = initialScale;
-        
-        // Float up and fade out
-        float timer = 0f;
-        
-        while (timer < lifetime)
+        // Make text face camera correctly (fix mirroring)
+        if (Camera.main != null)
         {
-            timer += Time.deltaTime;
-            float progress = timer / lifetime;
-            
-            // Move upward
-            transform.position += Vector3.up * floatSpeed * Time.deltaTime;
-            
-            // Fade out after halfway point
-            if (progress > 0.5f)
-            {
-                float fadeProgress = (progress - 0.5f) * 2f; // 0 to 1 during second half
-                Color newColor = initialColor;
-                newColor.a = Mathf.Lerp(initialColor.a, 0f, fadeProgress);
-                textMesh.color = newColor;
-                
-                // Scale up slightly
-                float scaleMultiplier = 1f + (fadeProgress * scaleSpeed);
-                transform.localScale = initialScale * scaleMultiplier;
-            }
-            
-            yield return null;
+            // Look at camera position instead of away from it
+            transform.forward = Camera.main.transform.forward;
         }
         
-        // Ensure we end fully transparent
-        Color finalColor = initialColor;
-        finalColor.a = 0f;
-        textMesh.color = finalColor;
-        
-        // Destroy after animation
-        Destroy(gameObject);
+        // Fade out in second half of duration
+        float t = (Time.time - startTime) / duration;
+        if (t > 0.5f && textComponent != null)
+        {
+            Color newColor = originalColor;
+            newColor.a = 1f - ((t - 0.5f) * 2f);
+            textComponent.color = newColor;
+        }
     }
 } 

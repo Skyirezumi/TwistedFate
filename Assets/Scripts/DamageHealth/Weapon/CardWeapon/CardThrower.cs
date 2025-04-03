@@ -27,11 +27,15 @@ public class CardThrower : MonoBehaviour
     [Header("Throwing Settings")]
     [SerializeField] private float throwCooldown = 0.5f;
     [SerializeField] private float cardSpeed = 10f;
-    [SerializeField] private AudioClip throwSound;
     [SerializeField] private float cardSwitchCooldown = 1.0f;
     
-    [Header("UI")]
+    [Header("Sound Effects")]
+    [SerializeField] private AudioClip[] cardShootSounds; // Array of 4 shooting sounds
+    [SerializeField] private AudioClip[] cardCollisionSounds; // Array of 4 collision sounds
     [SerializeField] private AudioClip cooldownEndSound;
+    [SerializeField] private AudioSource audioSource; // Reference to an AudioSource component
+    
+    [Header("UI")]
     [SerializeField] private Image cooldownImage; // UI Image for cooldown indicator
     
     private bool canThrow = true;
@@ -47,6 +51,25 @@ public class CardThrower : MonoBehaviour
         if (cooldownImage != null)
         {
             cooldownImage.fillAmount = 0;
+        }
+        
+        // Try to get an AudioSource if not explicitly assigned
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null && transform.parent != null)
+            {
+                audioSource = transform.parent.GetComponent<AudioSource>();
+            }
+            
+            if (audioSource == null)
+            {
+                Debug.LogWarning("No AudioSource found for CardThrower - adding one");
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+                audioSource.spatialBlend = 1.0f; // 3D sound
+                audioSource.volume = 1.0f;
+            }
         }
     }
     
@@ -130,9 +153,55 @@ public class CardThrower : MonoBehaviour
         }
         
         // Play throw sound if assigned
-        if (throwSound != null)
+        if (cardShootSounds != null && cardShootSounds.Length > 0)
         {
-            AudioSource.PlayClipAtPoint(throwSound, throwPoint.position, 0.6f);
+            // Check for null entries in the array
+            bool hasValidSounds = false;
+            foreach (AudioClip clip in cardShootSounds)
+            {
+                if (clip != null)
+                {
+                    hasValidSounds = true;
+                    break;
+                }
+            }
+            
+            if (hasValidSounds)
+            {
+                // Get a random sound that isn't null
+                AudioClip soundToPlay = null;
+                while (soundToPlay == null && hasValidSounds)
+                {
+                    int randomIndex = Random.Range(0, cardShootSounds.Length);
+                    soundToPlay = cardShootSounds[randomIndex];
+                    if (soundToPlay == null)
+                    {
+                        continue; // Try again if we got a null clip
+                    }
+                }
+                
+                if (soundToPlay != null)
+                {
+                    // SUPER SUPER LOUD - boost volume to extreme levels
+                    audioSource.volume = 6.0f; // Double the previous volume (3.0 -> 6.0)
+                    audioSource.PlayOneShot(soundToPlay, 6.0f); // Double the previous volume (3.0 -> 6.0)
+                    Debug.Log($"Playing card throw sound: {soundToPlay.name} at EXTREME volume 6.0");
+                    // Reset volume after a frame to not affect other sounds
+                    StartCoroutine(ResetVolumeAfterSound());
+                }
+                else
+                {
+                    Debug.LogWarning("All card shoot sounds are null!");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Card shoot sounds array contains only null entries!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No card shoot sounds assigned!");
         }
         
         // Calculate exact angle for card orientation
@@ -158,8 +227,8 @@ public class CardThrower : MonoBehaviour
                 Debug.LogError("Card sprite or renderer missing!");
             }
             
-            // Then initialize with correct stats
-            card.Initialize(cardType, stats, effectPrefab, cardColor);
+            // Then initialize with correct stats and collision sounds
+            card.Initialize(cardType, stats, effectPrefab, cardColor, cardCollisionSounds);
             
             // Launch the card AFTER initialization
             card.Launch(direction);
@@ -193,7 +262,7 @@ public class CardThrower : MonoBehaviour
         // Play cooldown end sound if assigned
         if (cooldownEndSound != null)
         {
-            AudioSource.PlayClipAtPoint(cooldownEndSound, transform.position, 0.6f);
+            audioSource.PlayOneShot(cooldownEndSound, 0.6f);
         }
         
         // Reset cooldown UI
@@ -224,11 +293,66 @@ public class CardThrower : MonoBehaviour
     // Method for increasing card damage (called by SlotMachine)
     public void IncreaseDamage(float amount)
     {
-        // Increase damage for all card types
-        redCardStats.damage.baseValue += amount;
-        greenCardStats.damage.baseValue += amount;
-        blueCardStats.damage.baseValue += amount;
+        // The damage is now a CardStat object (not a simple float)
+        // Access the baseValue of the CardStat properly
+        if (redCardStats != null && redCardStats.damage != null)
+        {
+            redCardStats.damage.baseValue += amount;
+        }
         
-        Debug.Log($"Card damage increased! Red: {redCardStats.damage.baseValue}, Green: {greenCardStats.damage.baseValue}, Blue: {blueCardStats.damage.baseValue}");
+        if (greenCardStats != null && greenCardStats.damage != null)
+        {
+            greenCardStats.damage.baseValue += amount;
+        }
+        
+        if (blueCardStats != null && blueCardStats.damage != null)
+        {
+            blueCardStats.damage.baseValue += amount;
+        }
+        
+        Debug.Log($"CardThrower: Increased all card damage by {amount}. New damage values - " + 
+                  $"Red: {redCardStats?.damage?.baseValue ?? 0}, " +
+                  $"Green: {greenCardStats?.damage?.baseValue ?? 0}, " +
+                  $"Blue: {blueCardStats?.damage?.baseValue ?? 0}");
+    }
+    
+    // Add method to get the current damage
+    public float GetCurrentDamage()
+    {
+        // Calculate average damage from all card types
+        float totalDamage = 0;
+        int cardTypeCount = 0;
+        
+        if (redCardStats != null && redCardStats.damage != null)
+        {
+            totalDamage += redCardStats.damage.baseValue;
+            cardTypeCount++;
+        }
+        
+        if (greenCardStats != null && greenCardStats.damage != null)
+        {
+            totalDamage += greenCardStats.damage.baseValue;
+            cardTypeCount++;
+        }
+        
+        if (blueCardStats != null && blueCardStats.damage != null)
+        {
+            totalDamage += blueCardStats.damage.baseValue;
+            cardTypeCount++;
+        }
+        
+        if (cardTypeCount > 0)
+        {
+            return totalDamage / cardTypeCount;
+        }
+        
+        return 0;
+    }
+    
+    // Helper method to reset volume after playing a loud sound
+    private IEnumerator ResetVolumeAfterSound()
+    {
+        yield return null; // Wait one frame
+        audioSource.volume = 1.0f; // Reset to normal volume
     }
 } 

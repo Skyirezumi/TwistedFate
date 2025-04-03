@@ -21,6 +21,7 @@ public class Card : MonoBehaviour
     protected Color cardColor;
     protected GameObject effectPrefab;
     protected CardStats stats;
+    protected AudioClip[] collisionSounds;
     
     [SerializeField] protected bool useCollision = true;
     
@@ -46,12 +47,13 @@ public class Card : MonoBehaviour
         }
     }
     
-    public void Initialize(CardType type, CardStats cardStats, GameObject impactEffect, Color color)
+    public void Initialize(CardType type, CardStats cardStats, GameObject impactEffect, Color color, AudioClip[] cardCollisionSounds = null)
     {
         cardType = type;
         stats = cardStats;
         effectPrefab = impactEffect;
         cardColor = color;
+        collisionSounds = cardCollisionSounds;
         
         // Apply color to sprite
         if (spriteRenderer != null)
@@ -143,6 +145,9 @@ public class Card : MonoBehaviour
     // What happens when the card hits something
     protected virtual void OnHit(GameObject target)
     {
+        // Play collision sound
+        PlayCollisionSound();
+        
         // Apply special effect based on card type
         ApplySpecialEffect(target);
         Destroy(gameObject);
@@ -291,6 +296,68 @@ public class Card : MonoBehaviour
         if (hitCount == 0)
         {
             Debug.LogWarning("No enemies found in splash radius. Ensure enemies have EnemyHealth component and colliders.");
+        }
+    }
+    
+    // New method to play collision sound
+    protected virtual void PlayCollisionSound()
+    {
+        if (collisionSounds != null && collisionSounds.Length > 0)
+        {
+            // Check for null entries
+            bool hasValidSounds = false;
+            foreach (AudioClip clip in collisionSounds)
+            {
+                if (clip != null)
+                {
+                    hasValidSounds = true;
+                    break;
+                }
+            }
+            
+            if (hasValidSounds)
+            {
+                // Get a random sound that isn't null
+                AudioClip soundToPlay = null;
+                while (soundToPlay == null && hasValidSounds)
+                {
+                    int randomIndex = Random.Range(0, collisionSounds.Length);
+                    soundToPlay = collisionSounds[randomIndex];
+                    if (soundToPlay == null)
+                    {
+                        continue; // Try again if we got a null clip
+                    }
+                }
+                
+                if (soundToPlay != null)
+                {
+                    // EXTREME LOUD - create a temporary AudioSource for maximum volume
+                    GameObject tempAudio = new GameObject("TempAudioSource");
+                    tempAudio.transform.position = transform.position;
+                    AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+                    tempSource.clip = soundToPlay;
+                    tempSource.spatialBlend = 1.0f; // 3D sound
+                    tempSource.volume = 6.0f; // Double the previous volume (3.0 -> 6.0)
+                    tempSource.PlayOneShot(soundToPlay, 6.0f); // Double the previous volume (3.0 -> 6.0)
+                    
+                    Debug.Log($"Playing card collision sound: {soundToPlay.name} at EXTREME volume 6.0");
+                    
+                    // Destroy the temporary object after the sound finishes
+                    Destroy(tempAudio, soundToPlay.length + 0.1f);
+                }
+                else
+                {
+                    Debug.LogWarning("All card collision sounds are null!");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("Card collision sounds array contains only null entries!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No card collision sounds assigned or passed to card!");
         }
     }
 }

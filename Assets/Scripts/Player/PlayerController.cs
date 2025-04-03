@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public static PlayerController Instance;
+    public static PlayerController Instance { get; private set; }
 
     public bool FacingLeft { get; set; }
     public bool IsDead { get { return isDead; } }
@@ -24,6 +24,15 @@ public class PlayerController : MonoBehaviour
     
     [Header("Card Throwing")]
     [SerializeField] private CardThrower cardThrower;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip[] footstepSounds;
+    [SerializeField] private float footstepRate = 0.5f;
+    [SerializeField] private float footstepVolume = 0.4f;
+    private float footstepTimer = 0f;
+    private AudioSource audioSource;
+    private bool isPlayingFootstep = false;
+    private Coroutine currentFootstepCoroutine;
 
     private bool isDashing = false;
     private bool isShooting = false;
@@ -51,12 +60,32 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        // Singleton pattern
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
         playerControls = new PlayerControls();
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         currentHealth = maxHealth;
+        
+        // Get or add AudioSource for footsteps
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 1.0f; // 3D sound
+            audioSource.volume = footstepVolume;
+        }
     }
 
     private void OnEnable()
@@ -124,6 +153,7 @@ public class PlayerController : MonoBehaviour
         DeterminePlayerDirection();
         AdjustPlayerFacing();
         UpdateAnimationState();
+        UpdateFootsteps();
         
         // Debug
         if (movement.magnitude < 0.1f && currentAnimation != null && currentAnimation.StartsWith("run_"))
@@ -409,30 +439,113 @@ public class PlayerController : MonoBehaviour
     // Increase the player's maximum health
     public void IncreaseMaxHealth(float amount)
     {
+        float oldMaxHealth = maxHealth;
         maxHealth += amount;
-        currentHealth += amount; // Also heal the player by the same amount
-        
-        // Play heal effect if desired
-        Debug.Log($"Player max health increased to {maxHealth}");
+        currentHealth += amount;
+        Debug.Log($"Player: Max health increased from {oldMaxHealth} to {maxHealth} (added {amount})");
     }
     
     // Increase the player's movement speed
     public void IncreaseMovementSpeed(float amount)
     {
+        float oldSpeed = movementSpeed;
         movementSpeed += amount;
-        Debug.Log($"Player movement speed increased to {movementSpeed}");
+        Debug.Log($"Player: Movement speed increased from {oldSpeed} to {movementSpeed} (added {amount})");
     }
     
     // Increase the dash power/distance
     public void IncreaseDashPower(float amount)
     {
+        float oldDashPower = dashSpeed;
         dashSpeed += amount;
-        Debug.Log($"Player dash power increased to {dashSpeed}");
+        Debug.Log($"Player: Dash power increased from {oldDashPower} to {dashSpeed} (added {amount})");
     }
     
     // Add this method to test player death
     public void TestDeath()
     {
         TakeDamage(maxHealth);
+    }
+
+    // Add public getter methods to expose current values
+    public float GetCurrentMovementSpeed()
+    {
+        return movementSpeed;
+    }
+
+    public float GetCurrentDashPower()
+    {
+        return dashSpeed;
+    }
+
+    public float GetMaxHealth()
+    {
+        return maxHealth;
+    }
+
+    // New method to handle footstep sounds
+    private void UpdateFootsteps()
+    {
+        if (isDead) return;
+        
+        // If moving and on the ground
+        if (movement.magnitude > 0.1f)
+        {
+            footstepTimer -= Time.deltaTime;
+            
+            // Play footstep sound at regular intervals while moving
+            if (footstepTimer <= 0 && !isPlayingFootstep)
+            {
+                currentFootstepCoroutine = StartCoroutine(PlayFootstepWithCooldown());
+                // Reset timer - make it slightly longer than the footstep sound length
+                footstepTimer = footstepRate;
+            }
+        }
+        else
+        {
+            // Reset timer when not moving
+            footstepTimer = 0;
+            
+            // Stop any playing footstep sound when player stops moving
+            if (isPlayingFootstep && currentFootstepCoroutine != null)
+            {
+                StopCoroutine(currentFootstepCoroutine);
+                isPlayingFootstep = false;
+                currentFootstepCoroutine = null;
+            }
+        }
+    }
+
+    // Play a random footstep sound with cooldown to prevent overlapping
+    private IEnumerator PlayFootstepWithCooldown()
+    {
+        if (footstepSounds == null || footstepSounds.Length == 0) yield break;
+        
+        isPlayingFootstep = true;
+        
+        // Select a random footstep sound
+        int randomIndex = Random.Range(0, footstepSounds.Length);
+        AudioClip footstepSound = footstepSounds[randomIndex];
+        
+        if (footstepSound != null)
+        {
+            // Create a temporary AudioSource that we can stop immediately if needed
+            GameObject tempAudio = new GameObject("TempFootstepSound");
+            tempAudio.transform.position = transform.position;
+            tempAudio.transform.parent = transform;
+            AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+            tempSource.clip = footstepSound;
+            tempSource.volume = footstepVolume;
+            tempSource.spatialBlend = 1.0f;
+            tempSource.Play();
+            
+            // Clean up the audio when done
+            float soundDuration = footstepSound.length * 0.8f;
+            yield return new WaitForSeconds(soundDuration);
+            Destroy(tempAudio);
+        }
+        
+        isPlayingFootstep = false;
+        currentFootstepCoroutine = null;
     }
 }

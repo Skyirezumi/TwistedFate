@@ -15,7 +15,7 @@ public class SlotMachineUI : MonoBehaviour
     
     [Header("Icon References")]
     [SerializeField] private Sprite[] symbolSprites; // 0 = damage, 1 = health, 2 = speed, 3 = dash, etc.
-    [SerializeField] private bool useColoredSquaresInsteadOfSprites = false; // NEW option to use colored squares
+    [SerializeField] private bool useColoredSquaresInsteadOfSprites = false; // Option to use colored squares
     
     // Define upgrade types based on sprite names
     [Header("Icon Type Mappings")]
@@ -25,9 +25,9 @@ public class SlotMachineUI : MonoBehaviour
     [SerializeField] private string dashIconKeyword = "dash";
     
     [Header("Animation Settings")]
-    [SerializeField] private float spinDuration = 1.5f;
-    [SerializeField] private float reelStopDelay = 0.3f;
+    [SerializeField] private float spinDuration = 0.5f;
     [SerializeField] private int spinSpeed = 20; // Frames per second for spinning
+    [SerializeField] private float reelStopDelay = 0.5f; // Delay between each reel stopping
     
     [Header("UI Positioning")]
     [SerializeField] private bool positionAtBottomLeft = true;
@@ -40,13 +40,24 @@ public class SlotMachineUI : MonoBehaviour
     [SerializeField] private bool useFixedIconOrder = true;
     
     // Will be referenced by SlotMachine script
-    public float SpinDuration => spinDuration;
+    public float SpinDuration 
+    { 
+        get 
+        {
+            // Total duration includes base spin time plus delays for each reel after the first
+            return spinDuration + (reelStopDelay * (reelImages != null ? reelImages.Length - 1 : 0));
+        } 
+    }
     
     private int[] reelResults = new int[3]; // Stores the final result for each reel
     private Coroutine spinCoroutine;
+    private List<Coroutine> activeCoroutines = new List<Coroutine>();
+    private bool isSpinning = false;
     
     private void Awake()
     {
+        Debug.Log("SlotMachineUI: Awake called");
+        
         // Position the UI at bottom left if requested
         if (positionAtBottomLeft && canvasRect != null)
         {
@@ -64,9 +75,13 @@ public class SlotMachineUI : MonoBehaviour
         {
             resultText.gameObject.SetActive(false);
         }
+        else
+        {
+            Debug.LogError("SlotMachineUI: ResultText is null! UI will not show results.");
+        }
         
         // Make sure the reel images have their Image Type set properly and are visible
-        if (reelImages != null)
+        if (reelImages != null && reelImages.Length > 0)
         {
             Debug.Log($"SlotMachineUI: Found {reelImages.Length} reel images to set up");
             for (int i = 0; i < reelImages.Length; i++)
@@ -115,7 +130,7 @@ public class SlotMachineUI : MonoBehaviour
         }
         else
         {
-            Debug.LogError("SlotMachineUI: No reel images assigned!");
+            Debug.LogError("SlotMachineUI: No reel images assigned or the array is empty!");
         }
         
         // Check if we have sprites assigned
@@ -134,28 +149,131 @@ public class SlotMachineUI : MonoBehaviour
                 if (symbolSprites[i] != null)
                 {
                     Debug.Log($"Icon {i}: {symbolSprites[i].name}");
-                    
-                    // Automatically detect icon types based on name
-                    if (symbolSprites[i].name.ToLower().Contains(damageIconKeyword))
-                    {
-                        Debug.Log($"Detected Damage icon: {symbolSprites[i].name}");
-                    }
-                    else if (symbolSprites[i].name.ToLower().Contains(healthIconKeyword))
-                    {
-                        Debug.Log($"Detected Health icon: {symbolSprites[i].name}");
-                    }
-                    else if (symbolSprites[i].name.ToLower().Contains(speedIconKeyword))
-                    {
-                        Debug.Log($"Detected Speed icon: {symbolSprites[i].name}");
-                    }
-                    else if (symbolSprites[i].name.ToLower().Contains(dashIconKeyword))
-                    {
-                        Debug.Log($"Detected Dash icon: {symbolSprites[i].name}");
-                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"SlotMachineUI: Symbol sprite at index {i} is null!");
                 }
             }
             
             useColoredSquaresInsteadOfSprites = false;
+        }
+
+        // Ensure the UI is visible
+        EnsureCanvasVisibility();
+        
+        // Log UI state
+        Debug.Log($"SlotMachineUI: UI GameObject initialized");
+    }
+    
+    private void Start()
+    {
+        // Double check all parent canvases are enabled
+        EnsureParentCanvasEnabled();
+    }
+    
+    private void OnEnable()
+    {
+        Debug.Log("SlotMachineUI: OnEnable called - ensuring UI visibility");
+        
+        // Check all images are enabled and visible
+        EnsureReelImagesVisible();
+        
+        // Make sure all parent canvases are enabled
+        EnsureParentCanvasEnabled();
+    }
+    
+    private void OnDisable()
+    {
+        Debug.Log("SlotMachineUI: OnDisable called - cleaning up coroutines");
+        
+        // Stop all active coroutines
+        StopAllCoroutines();
+        activeCoroutines.Clear();
+        isSpinning = false;
+    }
+    
+    private void EnsureReelImagesVisible()
+    {
+        if (reelImages == null || reelImages.Length == 0) return;
+        
+        foreach (Image reel in reelImages)
+        {
+            if (reel != null)
+            {
+                if (!reel.enabled)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Reel image was disabled, enabling it: {reel.name}");
+                    reel.enabled = true;
+                }
+                
+                // Make sure alpha is 1
+                Color c = reel.color;
+                if (c.a < 1f)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Reel image alpha was {c.a}, fixing to 1.0");
+                    c.a = 1f;
+                    reel.color = c;
+                }
+                
+                // Make sure its parent is active
+                if (reel.transform.parent != null && !reel.transform.parent.gameObject.activeSelf)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Reel parent was inactive, activating it: {reel.transform.parent.name}");
+                    reel.transform.parent.gameObject.SetActive(true);
+                }
+            }
+        }
+    }
+    
+    private void EnsureParentCanvasEnabled()
+    {
+        Transform parent = transform.parent;
+        while (parent != null)
+        {
+            Canvas parentCanvas = parent.GetComponent<Canvas>();
+            if (parentCanvas != null)
+            {
+                if (!parentCanvas.enabled)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Parent canvas was disabled, enabling it: {parent.name}");
+                    parentCanvas.enabled = true;
+                }
+                
+                CanvasGroup canvasGroup = parent.GetComponent<CanvasGroup>();
+                if (canvasGroup != null && canvasGroup.alpha < 1f)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Parent canvas group alpha was {canvasGroup.alpha}, fixing to 1.0");
+                    canvasGroup.alpha = 1f;
+                    canvasGroup.interactable = true;
+                    canvasGroup.blocksRaycasts = true;
+                }
+                
+                if (!parent.gameObject.activeSelf)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Parent canvas GameObject was inactive, activating it: {parent.name}");
+                    parent.gameObject.SetActive(true);
+                }
+            }
+            parent = parent.parent;
+        }
+    }
+    
+    private void EnsureCanvasVisibility()
+    {
+        if (gameObject != null)
+        {
+            CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+            {
+                if (canvasGroup.alpha < 1f)
+                {
+                    Debug.LogWarning($"SlotMachineUI: Canvas group alpha was {canvasGroup.alpha}, fixing to 1.0");
+                    canvasGroup.alpha = 1f;
+                    canvasGroup.interactable = true;
+                    canvasGroup.blocksRaycasts = true;
+                }
+            }
         }
     }
     
@@ -182,11 +300,15 @@ public class SlotMachineUI : MonoBehaviour
     {
         Debug.Log("SlotMachineUI: StartSpin called");
         
-        // Stop any existing spin
-        if (spinCoroutine != null)
+        // If already spinning, ignore this request
+        if (isSpinning)
         {
-            StopCoroutine(spinCoroutine);
+            Debug.LogWarning("SlotMachineUI: Ignoring StartSpin request because the slot machine is already spinning");
+            return;
         }
+        
+        // Stop any existing coroutines
+        StopAllActiveCoroutines();
         
         // Hide previous result text
         if (resultText != null)
@@ -201,7 +323,22 @@ public class SlotMachineUI : MonoBehaviour
         }
         
         // Start the spinning coroutine
+        isSpinning = true;
         spinCoroutine = StartCoroutine(SpinReels());
+        activeCoroutines.Add(spinCoroutine);
+    }
+    
+    private void StopAllActiveCoroutines()
+    {
+        // Stop all active coroutines
+        foreach (Coroutine coroutine in activeCoroutines)
+        {
+            if (coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+        }
+        activeCoroutines.Clear();
     }
     
     private IEnumerator SpinReels()
@@ -211,256 +348,211 @@ public class SlotMachineUI : MonoBehaviour
         // Safety check
         if (reelImages == null || reelImages.Length == 0)
         {
-            Debug.LogWarning("No reel images assigned to SlotMachineUI");
+            Debug.LogError("SlotMachineUI: No reel images assigned! Cannot spin reels.");
+            isSpinning = false;
             yield break;
         }
         
+        // Ensure UI visibility before spinning
+        EnsureReelImagesVisible();
+        EnsureParentCanvasEnabled();
+        EnsureCanvasVisibility();
+        
+        // Generate all results first
+        for (int i = 0; i < reelImages.Length; i++)
+        {
+            reelResults[i] = Random.Range(0, 4);
+            Debug.Log($"SlotMachineUI: Generated result for reel {i}: {reelResults[i]} ({GetUpgradeTypeName(reelResults[i])})");
+        }
+        
+        // Log the reels in a clearer format
+        Debug.Log($"SlotMachineUI: FULL REEL RESULTS - " +
+                  $"[{reelResults[0]} ({GetUpgradeTypeName(reelResults[0])}), " +
+                  $"{reelResults[1]} ({GetUpgradeTypeName(reelResults[1])}), " +
+                  $"{reelResults[2]} ({GetUpgradeTypeName(reelResults[2])})]");
+        
         // Start all reels spinning
+        List<Coroutine> spinCoroutines = new List<Coroutine>();
         for (int i = 0; i < reelImages.Length; i++)
         {
             if (reelImages[i] != null)
             {
-                StartCoroutine(SpinReel(reelImages[i], i));
-                yield return new WaitForSeconds(reelStopDelay); // Stagger the spin start slightly
-            }
-            else
-            {
-                Debug.LogError($"SlotMachineUI: Reel image at index {i} is null!");
+                // Create a longer spin duration for each successive reel
+                float adjustedSpinDuration = spinDuration + (i * reelStopDelay);
+                
+                Coroutine reelSpin = StartCoroutine(SpinReel(reelImages[i], i, adjustedSpinDuration));
+                spinCoroutines.Add(reelSpin);
+                activeCoroutines.Add(reelSpin);
             }
         }
+        
+        // Wait for all reels to finish (base duration + delay for each additional reel)
+        float totalDuration = spinDuration + (reelStopDelay * (reelImages.Length - 1));
+        Debug.Log($"SlotMachineUI: Total spin sequence will take {totalDuration} seconds");
+        
+        yield return new WaitForSeconds(totalDuration);
+        
+        // Calculate results for debugging
+        int numMatches = CountMatches();
+        int firstIconType = GetFirstIconType();
+        int firstIconCount = CountIconType(firstIconType);
+        
+        // Log the final results with detailed analysis
+        Debug.Log($"SlotMachineUI: Spin complete - Final Results: [{reelResults[0]} ({GetUpgradeTypeName(reelResults[0])}), " +
+                 $"{reelResults[1]} ({GetUpgradeTypeName(reelResults[1])}), " +
+                 $"{reelResults[2]} ({GetUpgradeTypeName(reelResults[2])})]");
+        
+        Debug.Log($"SlotMachineUI: ANALYSIS - " +
+                 $"First Icon: {firstIconType} ({GetUpgradeTypeName(firstIconType)}), " +
+                 $"First Icon Count: {firstIconCount}, " +
+                 $"Total Match Pairs: {numMatches}");
+        
+        // Spin is now complete
+        isSpinning = false;
     }
     
-    private IEnumerator SpinReel(Image reelImage, int reelIndex)
+    private IEnumerator SpinReel(Image reelImage, int reelIndex, float duration)
     {
-        Debug.Log($"SlotMachineUI: Starting spin for reel {reelIndex}");
-        
-        // If we're using colored squares instead of sprites, we'll bypass the sprite check
-        if (!useColoredSquaresInsteadOfSprites && (symbolSprites == null || symbolSprites.Length == 0))
+        if (reelImage == null)
         {
-            Debug.LogWarning("No symbol sprites assigned to SlotMachineUI - using colored squares instead");
-            // Force colored squares mode
-            useColoredSquaresInsteadOfSprites = true;
+            Debug.LogError($"SlotMachineUI: Reel image is null for reel {reelIndex}!");
+            yield break;
         }
         
-        float spinTime = 0f;
-        float reelSpinDuration = spinDuration - (reelIndex * reelStopDelay); // Each reel stops in sequence
-        
-        // Calculate how many frames we'll show during the spin
-        int frameCount = Mathf.FloorToInt(reelSpinDuration * spinSpeed);
+        Debug.Log($"SlotMachineUI: Spinning reel {reelIndex} for {duration} seconds");
         
         // Define colors for each upgrade type
         Color[] upgradeColors = { Color.red, Color.green, Color.cyan, Color.yellow };
         
-        // Spin the reel
-        for (int i = 0; i < frameCount; i++)
+        // Calculate total frames for the spin
+        int totalFrames = Mathf.FloorToInt(duration * spinSpeed);
+        float frameDelay = 1f / spinSpeed;
+        
+        // Force image to be enabled and visible
+        reelImage.enabled = true;
+        
+        // Spin animation
+        for (int i = 0; i < totalFrames; i++)
         {
-            // Choose a random symbol or color
-            int randomIndex = Random.Range(0, 4); // Always use 4 types (damage, health, speed, dash)
+            // Show random symbol during spin
+            int randomIndex = Random.Range(0, 4);
+            UpdateReelImage(reelImage, randomIndex, upgradeColors);
             
-            if (useColoredSquaresInsteadOfSprites)
-            {
-                // Use colored squares
-                reelImage.sprite = null;
-                reelImage.color = upgradeColors[randomIndex];
-            }
-            else
-            {
-                // Use sprites if available
-                if (symbolSprites != null && symbolSprites.Length > randomIndex)
-                {
-                    reelImage.sprite = symbolSprites[randomIndex];
-                    reelImage.color = Color.white; // Reset color when using sprites
-                }
-                else
-                {
-                    // Fallback to colored square
-                    reelImage.sprite = null;
-                    reelImage.color = upgradeColors[randomIndex];
-                }
-            }
-            
-            // If we're near the end, slow down the spinning
-            float progress = (float)i / frameCount;
-            float delay = Mathf.Lerp(1f / spinSpeed, 0.1f, progress);
-            
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(frameDelay);
         }
         
-        // Set the final result for this reel
-        int resultIndex = Random.Range(0, 4); // Always use 4 upgrade types
+        // Show final result at the end of this reel's spin
+        ShowFinalResult(reelImage, reelResults[reelIndex]);
         
-        // Apply the final look based on the result
+        // Play a sound effect when this reel stops (if available)
+        AudioSource audioSource = GetComponent<AudioSource>();
+        if (audioSource != null && audioSource.clip != null)
+        {
+            audioSource.PlayOneShot(audioSource.clip, 0.5f);
+        }
+    }
+    
+    private void ShowFinalResult(Image reelImage, int resultIndex)
+    {
+        if (reelImage == null)
+        {
+            Debug.LogError("SlotMachineUI: Trying to show final result with null reel image!");
+            return;
+        }
+        
+        Color[] upgradeColors = { Color.red, Color.green, Color.cyan, Color.yellow };
+        UpdateReelImage(reelImage, resultIndex, upgradeColors);
+        
+        // Log visibility for debugging
+        Debug.Log($"SlotMachineUI: Setting final result for reel - Image enabled: {reelImage.enabled}, " +
+                 $"Type: {resultIndex} ({GetUpgradeTypeName(resultIndex)}), " +
+                 $"Color: {reelImage.color}, Alpha: {reelImage.color.a}");
+    }
+    
+    private void UpdateReelImage(Image reelImage, int index, Color[] colors)
+    {
+        if (reelImage == null)
+        {
+            Debug.LogError("SlotMachineUI: Trying to update null reel image!");
+            return;
+        }
+        
+        // Ensure the image is enabled
+        reelImage.enabled = true;
+        
         if (useColoredSquaresInsteadOfSprites)
         {
-            // Use colored squares
-            reelImage.sprite = null;
-            reelImage.color = upgradeColors[resultIndex];
+            // For colored squares, set the color based on the index
+            Color color = colors[index];
+            color.a = 1f; // Ensure full opacity
             
-            // Store the result by icon type (0-3)
-            reelResults[reelIndex] = resultIndex;
+            reelImage.sprite = null; // Clear the sprite
+            reelImage.color = color; // Set the color
+            reelImage.type = Image.Type.Simple; // Simple filled image
         }
-        else if (symbolSprites != null && symbolSprites.Length > resultIndex)
+        else if (symbolSprites != null && symbolSprites.Length > index && symbolSprites[index] != null)
         {
-            // Use sprites if available
-            Sprite resultSprite = symbolSprites[resultIndex];
-            reelImage.sprite = resultSprite;
+            // Use the appropriate sprite with white color
+            reelImage.sprite = symbolSprites[index];
             reelImage.color = Color.white;
-            
-            // Determine the upgrade type
-            int iconType;
-            
-            if (useFixedIconOrder)
-            {
-                // In fixed order mode, the sprite index IS the upgrade type
-                iconType = resultIndex;
-                Debug.Log($"Reel {reelIndex} landed on sprite at index {resultIndex} = {GetUpgradeTypeName(iconType)}");
-            }
-            else
-            {
-                // Try to determine from sprite name
-                iconType = GetIconTypeFromSprite(resultSprite);
-                Debug.Log($"Reel {reelIndex} landed on {resultSprite.name} (Type: {iconType})");
-            }
-            
-            // Store the result by icon type (0-3)
-            reelResults[reelIndex] = iconType;
+            reelImage.type = Image.Type.Simple; // Use Simple to show the full sprite
         }
         else
         {
-            // Fallback to colored square
-            reelImage.sprite = null;
-            reelImage.color = upgradeColors[resultIndex];
+            // Fallback to colored squares if sprites are missing
+            Color color = colors[index];
+            color.a = 1f; // Ensure full opacity
             
-            // Store the result by icon type (0-3)
-            reelResults[reelIndex] = resultIndex;
+            reelImage.sprite = null;
+            reelImage.color = color;
+            reelImage.type = Image.Type.Simple;
+            
+            Debug.LogWarning($"SlotMachineUI: Missing sprite for index {index}, using colored square instead");
         }
         
-        // If this is the last reel, we've completed the spin
-        if (reelIndex == reelImages.Length - 1)
-        {
-            // All reels have stopped, check the result
-            // This is handled by the main SlotMachine script
-            
-            // Count how many matches we have
-            int matchCount = CountMatches();
-            string matchResult = matchCount == 1 ? "No matches" : 
-                                 matchCount == 2 ? "Two matching symbols" : 
-                                 "Three matching symbols";
-            
-            Debug.Log($"Spin result: {matchResult} - Reel values: [{reelResults[0]}, {reelResults[1]}, {reelResults[2]}]");
-            
-            // Play win animation only if we have at least 2 matching icons
-            if (matchCount >= 2 && confettiEffect != null)
-            {
-                confettiEffect.Play();
-                // Play bigger effect for 3 matches
-                if (matchCount == 3)
-                {
-                    // Make the effect more intense for a perfect match
-                    var main = confettiEffect.main;
-                    main.startSize = main.startSize.constant * 1.5f;
-                    main.startSpeed = main.startSpeed.constant * 1.5f;
-                    main.maxParticles = main.maxParticles * 2;
-                }
-            }
-        }
+        // Ensure the image is refreshed
+        reelImage.SetMaterialDirty();
     }
     
     public void ShowResult(string message, int upgradeType)
     {
-        Debug.Log($"SlotMachineUI: Showing result message: '{message}' with type {upgradeType}");
-        
-        // Get the color for this upgrade type
-        Color upgradeColor = Color.white;
-        switch (upgradeType)
-        {
-            case 0: // Damage upgrade
-                upgradeColor = Color.red;
-                break;
-            case 1: // Health upgrade
-                upgradeColor = Color.green;
-                break;
-            case 2: // Speed upgrade
-                upgradeColor = Color.cyan;
-                break;
-            case 3: // Dash upgrade
-                upgradeColor = Color.yellow;
-                break;
-        }
-        
-        // Make all reels show the same result
-        if (reelImages != null)
-        {
-            foreach (Image reel in reelImages)
-            {
-                if (useColoredSquaresInsteadOfSprites || symbolSprites == null || symbolSprites.Length <= upgradeType)
-                {
-                    // Use colored squares
-                    reel.sprite = null;
-                    reel.color = upgradeColor;
-                }
-                else
-                {
-                    // Use sprites
-                    // Find the appropriate sprite that matches the upgrade type
-                    Sprite matchingSprite = null;
-                    
-                    // First try to find by icon name
-                    foreach (Sprite sprite in symbolSprites)
-                    {
-                        if (sprite != null)
-                        {
-                            int iconType = GetIconTypeFromSprite(sprite);
-                            if (iconType == upgradeType)
-                            {
-                                matchingSprite = sprite;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // If no matching sprite found, fall back to index
-                    if (matchingSprite == null && symbolSprites.Length > upgradeType)
-                    {
-                        matchingSprite = symbolSprites[upgradeType];
-                    }
-                    
-                    if (matchingSprite != null)
-                    {
-                        reel.sprite = matchingSprite;
-                        reel.color = Color.white;
-                    }
-                    else
-                    {
-                        // Last resort fallback
-                        reel.sprite = null;
-                        reel.color = upgradeColor;
-                    }
-                }
-            }
-        }
-        
-        // Show the result text
         if (resultText != null)
         {
             resultText.text = message;
-            resultText.gameObject.SetActive(true);
             
-            // Animate the text if animator exists
-            if (slotAnimator != null)
+            // Ensure result text is active and visible
+            if (!resultText.gameObject.activeSelf)
             {
-                slotAnimator.SetTrigger("ShowResult");
+                resultText.gameObject.SetActive(true);
+            }
+            
+            // Set the text color based on the upgrade type
+            Color textColor = Color.white;
+            switch (upgradeType)
+            {
+                case 0: textColor = Color.red; break;    // Damage
+                case 1: textColor = Color.green; break;  // Health
+                case 2: textColor = Color.cyan; break;   // Speed
+                case 3: textColor = Color.yellow; break; // Dash
+            }
+            resultText.color = textColor;
+            
+            Debug.Log($"SlotMachineUI: Showing result message: '{message}' with color {textColor}");
+            
+            // Double check parent is active
+            if (!resultText.transform.parent.gameObject.activeSelf)
+            {
+                Debug.LogWarning("SlotMachineUI: Result text parent was inactive, activating it");
+                resultText.transform.parent.gameObject.SetActive(true);
             }
         }
-        
-        // Play confetti
-        if (confettiEffect != null)
+        else
         {
-            confettiEffect.Play();
+            Debug.LogError("SlotMachineUI: resultText is null! Cannot show result message.");
         }
     }
     
-    // New helper method to count matches
+    // Count matches
     private int CountMatches()
     {
         // If we have 3 reels
@@ -520,13 +612,34 @@ public class SlotMachineUI : MonoBehaviour
             }
         }
         
-        // No matches or error - just return a random icon type
-        int randomType = Random.Range(0, 4);
-        Debug.Log($"No matching pairs found, returning random type: {randomType}");
-        return randomType;
+        // No matches - return the first icon type
+        Debug.Log($"No matching pairs found, returning first icon type: {reelResults[0]}");
+        return reelResults[0];
     }
     
-    // Get the name of the upgrade type for debugging
+    // Get the first icon type
+    public int GetFirstIconType()
+    {
+        // Return the first (leftmost) reel's result
+        if (reelResults.Length > 0)
+        {
+            Debug.Log($"SlotMachineUI: First icon type is {reelResults[0]} ({GetUpgradeTypeName(reelResults[0])})");
+            return reelResults[0];
+        }
+        
+        Debug.LogError("SlotMachineUI: reelResults array is empty! Returning default value 0.");
+        return 0; // Default to damage type
+    }
+    
+    // Get the match count for the SlotMachine script
+    public int GetMatchCount()
+    {
+        int matches = CountMatches();
+        Debug.Log($"SlotMachineUI: Match count is {matches}");
+        return matches;
+    }
+    
+    // Helper method to get upgrade type name for debugging
     private string GetUpgradeTypeName(int upgradeType)
     {
         switch (upgradeType)
@@ -539,64 +652,35 @@ public class SlotMachineUI : MonoBehaviour
         }
     }
     
-    // Add a method to get the match count for the SlotMachine script
-    public int GetMatchCount()
+    // Public method to check if the slot machine is currently spinning
+    public bool IsSpinning()
     {
-        return CountMatches();
+        return isSpinning;
     }
     
-    // New helper method to determine icon type based on sprite name
-    private int GetIconTypeFromSprite(Sprite sprite)
+    // Modified CountIconType to add more debug info
+    public int CountIconType(int iconType)
     {
-        if (sprite == null) return 0; // Default to damage type
+        int count = 0;
         
-        string spriteName = sprite.name.ToLower();
-        Debug.Log($"Checking sprite type for: {spriteName}");
-        
-        // Debug all icon keywords for matching
-        Debug.Log($"Looking for keywords - Damage: '{damageIconKeyword}', Health: '{healthIconKeyword}', " +
-                 $"Speed: '{speedIconKeyword}', Dash: '{dashIconKeyword}'");
-        
-        // Make string comparisons more flexible by trimming and using contains
-        if (spriteName.Contains(damageIconKeyword.ToLower().Trim()))
+        // Go through all reel results and count matches for the specific type
+        for (int i = 0; i < reelResults.Length; i++)
         {
-            Debug.Log($"Identified as DAMAGE icon: {spriteName}");
-            return 0; // Damage
-        }
-        else if (spriteName.Contains(healthIconKeyword.ToLower().Trim()))
-        {
-            Debug.Log($"Identified as HEALTH icon: {spriteName}");
-            return 1; // Health
-        }
-        else if (spriteName.Contains(speedIconKeyword.ToLower().Trim()))
-        {
-            Debug.Log($"Identified as SPEED icon: {spriteName}");
-            return 2; // Speed
-        }
-        else if (spriteName.Contains(dashIconKeyword.ToLower().Trim()))
-        {
-            Debug.Log($"Identified as DASH icon: {spriteName}");
-            return 3; // Dash
-        }
-        
-        // If we're here, try a different approach - checking sprite position in array
-        Debug.Log("Keyword matching failed, trying position-based identification");
-        for (int i = 0; i < symbolSprites.Length; i++)
-        {
-            if (symbolSprites[i] == sprite)
+            if (reelResults[i] == iconType)
             {
-                Debug.Log($"Identified by position: Icon type {i} based on position in symbolSprites array");
-                switch (i % 4) {
-                    case 0: return 0; // Damage
-                    case 1: return 1; // Health
-                    case 2: return 2; // Speed
-                    case 3: return 3; // Dash
-                    default: return i % 4;
-                }
+                count++;
+                Debug.Log($"SlotMachineUI: Found match for icon type {iconType} ({GetUpgradeTypeName(iconType)}) in reel {i}");
             }
         }
         
-        Debug.LogWarning($"Could not identify icon type for sprite: {spriteName}. Assuming DAMAGE type.");
-        return 0; // Default to damage
+        Debug.Log($"SlotMachineUI: Counted {count} occurrences of icon type {iconType} ({GetUpgradeTypeName(iconType)})");
+        return count;
+    }
+    
+    // Add a method to get the reel results directly
+    public int[] GetReelResults()
+    {
+        Debug.Log($"SlotMachineUI: GetReelResults called, returning: [{string.Join(", ", reelResults)}]");
+        return reelResults;
     }
 } 

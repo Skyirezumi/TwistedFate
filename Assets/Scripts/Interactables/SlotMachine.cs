@@ -2,18 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class SlotMachine : MonoBehaviour
 {
     [Header("Interaction Settings")]
     [SerializeField] private GameObject interactionPrompt;
     [SerializeField] private float interactionRange = 2f;
-    [SerializeField] private float cooldownTime = 0f; // Set to 0 to remove cooldown
+    [SerializeField] private float cooldownTime = 60f;
     
     [Header("Slot Machine Settings")]
     [SerializeField] private GameObject slotMachineUI;
     [SerializeField] private AudioClip spinSound;
     [SerializeField] private AudioClip winSound;
+    
+    [Header("Visual Effects")]
+    [SerializeField] private GameObject floatingTextPrefab; // Assign a TextMeshPro prefab
     [SerializeField] private ParticleSystem winParticles;
     
     [Header("Stat Upgrade Settings")]
@@ -30,6 +34,10 @@ public class SlotMachine : MonoBehaviour
     private float moneyMessageTimer = 0f;
     private const float moneyMessageDuration = 3f;
     
+    [Header("Floating Text")]
+    [SerializeField] private float textDuration = 4f;
+    [SerializeField] private float floatSpeed = 0.5f;
+    
     private bool isInRange = false;
     private bool canInteract = true;
     private float cooldownTimer = 0f;
@@ -39,19 +47,44 @@ public class SlotMachine : MonoBehaviour
     private SlotMachineUI slotUI;
     private SlotMachineAnimator slotAnimator;
     
+    // Coroutine management
+    private Coroutine currentSlotMachineCoroutine;
+    private bool isPlayingSlotMachine = false;
+    
     private void Awake()
     {
+        Debug.Log("SlotMachine: Awake");
+        
+        // Set up audio source
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
+            Debug.Log("SlotMachine: Added AudioSource component");
         }
         
+        // Set up UI references
         if (slotMachineUI != null)
         {
             slotUI = slotMachineUI.GetComponent<SlotMachineUI>();
+            if (slotUI == null)
+            {
+                Debug.LogError("SlotMachine: SlotMachineUI component not found on UI GameObject");
+            }
+            
             slotAnimator = slotMachineUI.GetComponent<SlotMachineAnimator>();
+            if (slotAnimator == null)
+            {
+                Debug.Log("SlotMachine: No SlotMachineAnimator component found. This is optional.");
+            }
+            
+            // Hide UI initially
             slotMachineUI.SetActive(false);
+            Debug.Log("SlotMachine: UI initialized and hidden");
+        }
+        else
+        {
+            Debug.LogError("SlotMachine: No slotMachineUI GameObject assigned in inspector");
         }
     }
     
@@ -61,6 +94,58 @@ public class SlotMachine : MonoBehaviour
         if (interactionPrompt != null)
         {
             interactionPrompt.SetActive(false);
+            Debug.Log("SlotMachine: Interaction prompt hidden at start");
+        }
+        else
+        {
+            Debug.LogWarning("SlotMachine: No interaction prompt assigned!");
+        }
+        
+        // Verify the UI references are valid
+        VerifyUIReferences();
+    }
+    
+    private void VerifyUIReferences()
+    {
+        if (slotMachineUI != null)
+        {
+            // Check that the slot machine UI has a Canvas component or is under a Canvas
+            bool foundCanvas = false;
+            Transform current = slotMachineUI.transform;
+            while (current != null)
+            {
+                if (current.GetComponent<Canvas>() != null)
+                {
+                    foundCanvas = true;
+                    break;
+                }
+                current = current.parent;
+            }
+            
+            if (!foundCanvas)
+            {
+                Debug.LogError("SlotMachine: slotMachineUI is not under a Canvas! UI will not display correctly.");
+            }
+            
+            // Double check SlotMachineUI component
+            if (slotUI == null)
+            {
+                slotUI = slotMachineUI.GetComponent<SlotMachineUI>();
+                if (slotUI == null)
+                {
+                    Debug.LogError("SlotMachine: SlotMachineUI component still not found on UI GameObject during verification.");
+                }
+            }
+        }
+    }
+    
+    private void OnDestroy()
+    {
+        // Clean up any coroutines
+        if (currentSlotMachineCoroutine != null)
+        {
+            StopCoroutine(currentSlotMachineCoroutine);
+            currentSlotMachineCoroutine = null;
         }
     }
     
@@ -74,29 +159,73 @@ public class SlotMachine : MonoBehaviour
     
     private void CheckPlayerDistance()
     {
-        if (PlayerController.Instance == null) return;
+        if (PlayerController.Instance == null) 
+        {
+            if (isInRange)
+            {
+                isInRange = false;
+                UpdateInteractionPrompt();
+            }
+            return;
+        }
         
         float distance = Vector2.Distance(transform.position, PlayerController.Instance.transform.position);
+        bool wasInRange = isInRange;
         isInRange = distance <= interactionRange;
         
-        // Show/hide interaction prompt based on distance
+        // Only update the prompt if the range status changed
+        if (wasInRange != isInRange)
+        {
+            UpdateInteractionPrompt();
+        }
+    }
+    
+    private void UpdateInteractionPrompt()
+    {
+        // Show/hide interaction prompt based on distance and interaction state
         if (interactionPrompt != null)
         {
-            interactionPrompt.SetActive(isInRange && canInteract);
+            bool shouldShow = isInRange && canInteract;
+            if (interactionPrompt.activeSelf != shouldShow)
+            {
+                interactionPrompt.SetActive(shouldShow);
+                if (shouldShow)
+                {
+                    Debug.Log("SlotMachine: Showing interaction prompt - player in range");
+                }
+                else
+                {
+                    Debug.Log("SlotMachine: Hiding interaction prompt - player out of range or can't interact");
+                }
+            }
         }
     }
     
     private void HandleInteraction()
     {
-        if (isInRange && canInteract && Keyboard.current.eKey.wasPressedThisFrame)
+        // Prevent interaction if already playing
+        if (isPlayingSlotMachine) return;
+        
+        if (isInRange && canInteract && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
+            Debug.Log("SlotMachine: Interaction key pressed");
+            
             // Check if the player has enough gold
             if (EconomyManager.Instance != null && EconomyManager.Instance.HasEnoughGold(spinCost))
             {
-                StartCoroutine(PlaySlotMachine());
+                Debug.Log($"SlotMachine: Player has enough gold ({spinCost}). Starting slot machine.");
+                
+                // Start the slot machine and track the coroutine
+                if (currentSlotMachineCoroutine != null)
+                {
+                    StopCoroutine(currentSlotMachineCoroutine);
+                }
+                
+                currentSlotMachineCoroutine = StartCoroutine(PlaySlotMachine());
             }
             else
             {
+                Debug.Log($"SlotMachine: Not enough gold. Required: {spinCost}");
                 ShowNotEnoughMoneyMessage();
             }
         }
@@ -104,16 +233,14 @@ public class SlotMachine : MonoBehaviour
     
     private void HandleCooldown()
     {
-        if (!canInteract)
+        if (!canInteract && !isPlayingSlotMachine)
         {
             cooldownTimer -= Time.deltaTime;
             if (cooldownTimer <= 0)
             {
                 canInteract = true;
-                if (isInRange && interactionPrompt != null)
-                {
-                    interactionPrompt.SetActive(true);
-                }
+                UpdateInteractionPrompt();
+                Debug.Log("SlotMachine: Cooldown finished, interaction enabled");
             }
         }
     }
@@ -132,6 +259,7 @@ public class SlotMachine : MonoBehaviour
                 {
                     slotUI.ShowResult("", 0);
                     slotMachineUI.SetActive(false);
+                    Debug.Log("SlotMachine: Money message timer expired, hiding UI");
                 }
             }
         }
@@ -147,12 +275,60 @@ public class SlotMachine : MonoBehaviour
         // Show message using the slot machine UI
         if (slotMachineUI != null)
         {
+            // Ensure UI is visible
             slotMachineUI.SetActive(true);
             
+            // Set up Canvas Group if present
+            CanvasGroup canvasGroup = slotMachineUI.GetComponent<CanvasGroup>();
+            if (canvasGroup != null)
+            {
+                canvasGroup.alpha = 1f;
+                canvasGroup.interactable = true;
+                canvasGroup.blocksRaycasts = true;
+            }
+            
+            // Make sure parent canvas is enabled
+            EnsureParentCanvasEnabled(slotMachineUI.transform);
+            
+            // Show message text
             if (slotUI != null)
             {
                 slotUI.ShowResult(notEnoughMoneyMessage, 0); // Use damage color (red) for message
+                Debug.Log("SlotMachine: Showing 'not enough money' message");
             }
+        }
+    }
+    
+    private void EnsureParentCanvasEnabled(Transform objTransform)
+    {
+        Transform parent = objTransform.parent;
+        while (parent != null)
+        {
+            Canvas parentCanvas = parent.GetComponent<Canvas>();
+            if (parentCanvas != null)
+            {
+                if (!parentCanvas.enabled)
+                {
+                    Debug.LogWarning($"SlotMachine: Parent canvas was disabled, enabling it: {parent.name}");
+                    parentCanvas.enabled = true;
+                }
+                
+                CanvasGroup canvasGroup = parent.GetComponent<CanvasGroup>();
+                if (canvasGroup != null && canvasGroup.alpha < 1f)
+                {
+                    Debug.LogWarning($"SlotMachine: Parent canvas group alpha was {canvasGroup.alpha}, fixing to 1.0");
+                    canvasGroup.alpha = 1f;
+                    canvasGroup.interactable = true;
+                    canvasGroup.blocksRaycasts = true;
+                }
+                
+                if (!parent.gameObject.activeSelf)
+                {
+                    Debug.LogWarning($"SlotMachine: Parent canvas GameObject was inactive, activating it: {parent.name}");
+                    parent.gameObject.SetActive(true);
+                }
+            }
+            parent = parent.parent;
         }
     }
     
@@ -160,46 +336,85 @@ public class SlotMachine : MonoBehaviour
     {
         Debug.Log("SlotMachine: Starting PlaySlotMachine sequence");
         
-        // Spend the gold first
+        // Set flag to prevent multiple plays
+        isPlayingSlotMachine = true;
+        
+        // Spend the gold first - outside of try/catch
+        bool goldSpent = false;
         if (EconomyManager.Instance != null)
         {
-            if (!EconomyManager.Instance.SpendGold(spinCost))
+            goldSpent = EconomyManager.Instance.SpendGold(spinCost);
+            if (!goldSpent)
             {
-                // Double-check that the player still has enough gold
+                Debug.LogWarning($"SlotMachine: Failed to spend {spinCost} gold!");
                 ShowNotEnoughMoneyMessage();
+                isPlayingSlotMachine = false;
                 yield break;
-            }
-        }
-        
-        // Start cooldown (only used to prevent interaction while animation is playing)
-        canInteract = false;
-        
-        if (interactionPrompt != null)
-        {
-            interactionPrompt.SetActive(false);
-        }
-        
-        // Show the slot machine UI with animation if possible
-        if (slotMachineUI != null)
-        {
-            Debug.Log("SlotMachine: Activating UI panel");
-            slotMachineUI.SetActive(true);
-            
-            // Check if we have the SlotMachineAnimator component
-            if (slotAnimator != null)
-            {
-                Debug.Log("SlotMachine: Using SlotMachineAnimator for animations");
-                slotAnimator.PlayShowAnimation();
             }
             else
             {
-                Debug.Log("SlotMachine: No SlotMachineAnimator found - this is normal if using Unity Animator");
+                Debug.Log($"SlotMachine: Successfully spent {spinCost} gold");
             }
         }
-        else
+        
+        // Prevent interaction during spin
+        canInteract = false;
+        UpdateInteractionPrompt();
+        
+        // Show the slot machine UI - still outside try/catch
+        if (slotMachineUI == null)
         {
             Debug.LogError("SlotMachine: No UI panel assigned!");
-            yield break; // Can't continue without UI
+            isPlayingSlotMachine = false;
+            yield break;
+        }
+        
+        // Set UI active
+        slotMachineUI.SetActive(true);
+        
+        // Ensure the UI is visible
+        CanvasGroup canvasGroup = slotMachineUI.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+        
+        // Make sure parent canvas is enabled
+        EnsureParentCanvasEnabled(slotMachineUI.transform);
+        
+        Debug.Log("SlotMachine: UI panel activated");
+        
+        // Check if it's still not active after activating
+        if (!slotMachineUI.activeSelf)
+        {
+            Debug.LogError("SlotMachine: UI GameObject did not activate properly!");
+            
+            // Force the entire parent canvas to be active
+            Transform parent = slotMachineUI.transform.parent;
+            while (parent != null)
+            {
+                parent.gameObject.SetActive(true);
+                Canvas parentCanvas = parent.GetComponent<Canvas>();
+                if (parentCanvas != null)
+                {
+                    parentCanvas.enabled = true;
+                    break;
+                }
+                parent = parent.parent;
+            }
+            
+            // Try activating again
+            slotMachineUI.SetActive(true);
+            
+            // Double check
+            if (!slotMachineUI.activeSelf)
+            {
+                Debug.LogError("SlotMachine: UI still won't activate! This is a critical error.");
+                isPlayingSlotMachine = false;
+                yield break;
+            }
         }
         
         // Play spin sound
@@ -207,147 +422,187 @@ public class SlotMachine : MonoBehaviour
         {
             audioSource.clip = spinSound;
             audioSource.Play();
+            Debug.Log("SlotMachine: Playing spin sound");
         }
         
-        // Wait for animation duration (if using UI)
-        if (slotUI != null)
+        // Check if UI component exists before trying to use it
+        if (slotUI == null)
         {
-            Debug.Log("SlotMachine: Starting spin via SlotMachineUI");
-            slotUI.StartSpin();
-            yield return new WaitForSeconds(slotUI.SpinDuration);
-        }
-        else
-        {
-            Debug.LogWarning("SlotMachine: No SlotMachineUI component found on UI panel!");
-            // If no UI script, wait a short time
+            Debug.LogWarning("SlotMachine: No SlotMachineUI component found!");
             yield return new WaitForSeconds(2f);
-        }
-        
-        // Get match count and apply upgrade based on it
-        int matchCount = 1; // Default to 1 (no matches)
-        int matchedIconType = 0; // Default to damage type
-        
-        if (slotUI != null)
-        {
-            matchCount = slotUI.GetMatchCount();
-            matchedIconType = slotUI.GetMatchingIconType();
-        }
-        
-        if (matchCount == 1)
-        {
-            // No matches - no upgrade
-            Debug.Log("SlotMachine: All different icons - No upgrade");
             
-            // Show a "no luck" message
-            if (slotUI != null)
+            // Clean up and exit if no UI
+            if (slotMachineUI != null)
             {
-                slotUI.ShowResult(noLuckMessage, Random.Range(0, 4));
+                slotMachineUI.SetActive(false);
             }
-        }
-        else
-        {
-            // Apply upgrade based on the matched icon type with strength based on match count
-            ApplyUpgrade(matchedIconType, matchCount);
             
-            // Play win sound
+            isPlayingSlotMachine = false;
+            canInteract = true;
+            cooldownTimer = cooldownTime;
+            UpdateInteractionPrompt();
+            yield break;
+        }
+        
+        // Start the spin animation (no try-catch to avoid yield in try issues)
+        Debug.Log("SlotMachine: Calling StartSpin on SlotMachineUI");
+        slotUI.StartSpin();
+        
+        // Wait for spin animation to complete - outside try/catch
+        float spinDuration = slotUI.SpinDuration;
+        Debug.Log($"SlotMachine: Waiting for spin duration: {spinDuration} seconds");
+        yield return new WaitForSeconds(spinDuration);
+        
+        // Sometimes the UI can disappear during the spin (race condition)
+        if (slotMachineUI != null && !slotMachineUI.activeSelf)
+        {
+            Debug.LogWarning("SlotMachine: UI disappeared during spin! Re-activating");
+            slotMachineUI.SetActive(true);
+            EnsureParentCanvasEnabled(slotMachineUI.transform);
+        }
+        
+        // Get the first icon type and match count - outside try/catch
+        int firstIconType = slotUI.GetFirstIconType();
+        
+        // NEW: Get the actual reelResults array to check if first two positions match
+        int[] reelResults = slotUI.GetReelResults();
+        
+        // Check if first two icons match (not just any two)
+        bool firstTwoMatch = reelResults.Length >= 2 && reelResults[0] == reelResults[1];
+        
+        // Count total occurrences of first icon type
+        int firstIconCount = slotUI.CountIconType(firstIconType);
+        
+        // Determine the effective count for upgrade calculation:
+        // - If 3 of the same icon: count as 3
+        // - If first two match: count as 2
+        // - Otherwise count as 1 (even if first and third match but second doesn't)
+        int effectiveCount = (firstIconCount == 3) ? 3 : (firstTwoMatch ? 2 : 1);
+        
+        Debug.Log($"SlotMachine: Spin complete - First Icon: {GetUpgradeTypeName(firstIconType)}, " +
+                 $"First Icon Count: {firstIconCount}, First Two Match: {firstTwoMatch}, " +
+                 $"Effective Count: {effectiveCount}");
+        
+        // Wait a moment after the spin stops
+        yield return new WaitForSeconds(0.5f);
+        
+        // Apply the upgrade based on the first icon - in a try block without yields
+        try
+        {
+            // Use effectiveCount instead of firstIconCount for the multiplier
+            ApplyUpgrade(firstIconType, effectiveCount);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"SlotMachine: Exception during upgrade application: {e.Message}\n{e.StackTrace}");
+        }
+        
+        // Play win effects if there are matches of the first icon - outside try/catch
+        if (effectiveCount > 1)
+        {
+            Debug.Log($"SlotMachine: Playing win effects for effective count {effectiveCount} of {GetUpgradeTypeName(firstIconType)}");
+            
             if (winSound != null && audioSource != null)
             {
                 audioSource.clip = winSound;
                 audioSource.Play();
             }
             
-            // Show win particles
             if (winParticles != null)
             {
-                // Scale particles based on match count
                 var main = winParticles.main;
-                main.startSize = main.startSize.constant * (matchCount == 3 ? 1.5f : 1f);
-                main.startSpeed = main.startSpeed.constant * (matchCount == 3 ? 1.5f : 1f);
-                
+                main.startSize = main.startSize.constant * (effectiveCount == 3 ? 1.5f : 1f);
+                main.startSpeed = main.startSpeed.constant * (effectiveCount == 3 ? 1.5f : 1f);
                 winParticles.Play();
             }
         }
         
-        // Play result animation if possible
-        if (slotAnimator != null)
-        {
-            slotAnimator.PlayResultAnimation();
-        }
+        // Show the result message
+        string resultMessage = effectiveCount > 1 ? 
+            $"Great! {effectiveCount}x {GetUpgradeTypeName(firstIconType)} boost!" : 
+            $"Got {GetUpgradeTypeName(firstIconType)} boost!";
         
-        // Keep UI visible for a moment
-        yield return new WaitForSeconds(2f);
+        Debug.Log($"SlotMachine: Showing result message: '{resultMessage}'");
+        slotUI.ShowResult(resultMessage, firstIconType);
         
-        // Hide the slot machine UI with animation if possible
+        // Keep the result visible for 3 seconds
+        yield return new WaitForSeconds(3f);
+        
+        // Hide the UI
         if (slotMachineUI != null)
         {
-            if (slotAnimator != null)
-            {
-                slotAnimator.PlayHideAnimation();
-                // The animator will deactivate the UI when done
-                yield return new WaitForSeconds(0.5f); // Give the animation time to start
-            }
-            else
-            {
-                // If no animator, just hide it directly
-                Debug.Log("SlotMachine: Hiding UI panel directly");
-                slotMachineUI.SetActive(false);
-            }
+            slotMachineUI.SetActive(false);
+            Debug.Log("SlotMachine: UI panel deactivated");
         }
         
-        Debug.Log("SlotMachine: PlaySlotMachine sequence completed");
-        
-        // Re-enable interaction immediately
+        // Clean up
+        isPlayingSlotMachine = false;
         canInteract = true;
-        if (isInRange && interactionPrompt != null)
-        {
-            interactionPrompt.SetActive(true);
-        }
+        cooldownTimer = cooldownTime;
+        UpdateInteractionPrompt();
+        Debug.Log("SlotMachine: Interaction re-enabled");
     }
     
-    // New method that applies a specific upgrade based on matched icon type
-    private void ApplyUpgrade(int upgradeType, int matchCount)
+    private void ApplyUpgrade(int upgradeType, int iconCount)
     {
-        if (PlayerController.Instance == null) return;
+        if (PlayerController.Instance == null)
+        {
+            Debug.LogWarning("SlotMachine: Can't apply upgrade - PlayerController.Instance is null!");
+            return;
+        }
         
-        // If all icons are different (matchCount == 1), don't apply upgrade
-        if (matchCount == 1) return;
+        // Calculate multiplier based on count of the specific icon type (not any matches)
+        // New multiplier values: 0.3x for one symbol, 1x for two symbols, 5x for three symbols
+        float multiplier = iconCount == 3 ? 5f : (iconCount == 2 ? 1f : 0.3f);
         
-        string upgradeMessage = "";
+        Debug.Log($"SlotMachine: UPGRADE CALCULATION - Type: {upgradeType} ({GetUpgradeTypeName(upgradeType)}), " +
+                 $"Icon Count: {iconCount}, Raw Multiplier: {multiplier}");
+
+        // Get the base upgrade values before applying multiplier
+        float damageBase = damageUpgradeAmount;
+        float healthBase = healthUpgradeAmount;
+        float speedBase = speedUpgradeAmount;
+        float dashBase = dashUpgradeAmount;
         
-        // Calculate multiplier - double strength for 3 matches
-        float multiplier = (matchCount == 3) ? 2f : 1f;
+        // Calculate final upgrade amount with multiplier
+        float finalUpgradeAmount = 0f;
         
+        // Apply the upgrade based on the first icon type
         switch (upgradeType)
         {
-            case 0: // Damage upgrade (Red)
-                UpgradeDamage(damageUpgradeAmount * multiplier);
-                upgradeMessage = matchCount == 3 ? "Damage GREATLY increased!" : "Damage increased!";
+            case 0: // Damage (Red)
+                finalUpgradeAmount = damageBase * multiplier;
+                Debug.Log($"SlotMachine: Applying Damage upgrade - Base: {damageBase}, Multiplier: {multiplier}, Final: {finalUpgradeAmount}");
+                UpgradeDamage(finalUpgradeAmount);
                 break;
-            case 1: // Health upgrade (Green)
-                UpgradeHealth(healthUpgradeAmount * multiplier);
-                upgradeMessage = matchCount == 3 ? "Health GREATLY increased!" : "Health increased!";
+            case 1: // Health (Green)
+                finalUpgradeAmount = healthBase * multiplier;
+                Debug.Log($"SlotMachine: Applying Health upgrade - Base: {healthBase}, Multiplier: {multiplier}, Final: {finalUpgradeAmount}");
+                UpgradeHealth(finalUpgradeAmount);
                 break;
-            case 2: // Speed upgrade (Blue)
-                UpgradeSpeed(speedUpgradeAmount * multiplier);
-                upgradeMessage = matchCount == 3 ? "Speed GREATLY increased!" : "Movement speed increased!";
+            case 2: // Speed (Blue)
+                finalUpgradeAmount = speedBase * multiplier;
+                Debug.Log($"SlotMachine: Applying Speed upgrade - Base: {speedBase}, Multiplier: {multiplier}, Final: {finalUpgradeAmount}");
+                UpgradeSpeed(finalUpgradeAmount);
                 break;
-            case 3: // Dash upgrade (Yellow)
-                UpgradeDash(dashUpgradeAmount * multiplier);
-                upgradeMessage = matchCount == 3 ? "Dash GREATLY improved!" : "Dash range increased!";
+            case 3: // Dash (Yellow)
+                finalUpgradeAmount = dashBase * multiplier;
+                Debug.Log($"SlotMachine: Applying Dash upgrade - Base: {dashBase}, Multiplier: {multiplier}, Final: {finalUpgradeAmount}");
+                UpgradeDash(finalUpgradeAmount);
+                break;
+            default:
+                Debug.LogWarning($"SlotMachine: Unknown upgrade type: {upgradeType}");
                 break;
         }
         
-        // Show upgrade message in UI if available
-        if (slotUI != null)
-        {
-            slotUI.ShowResult(upgradeMessage, upgradeType);
-        }
-        
-        // Create floating text above player to show upgrade
+        // Create floating text to show the upgrade
+        string upgradeMessage = iconCount == 3 ? 
+            $"{GetUpgradeTypeName(upgradeType)} MASSIVELY increased!" : 
+            (iconCount == 2 ? $"{GetUpgradeTypeName(upgradeType)} increased!" : 
+            $"{GetUpgradeTypeName(upgradeType)} slightly increased!");
         CreateFloatingText(PlayerController.Instance.transform.position, upgradeMessage, GetUpgradeColor(upgradeType));
         
-        // Log for debugging
-        Debug.Log($"Player received upgrade: {upgradeMessage} (Type: {GetUpgradeTypeName(upgradeType)}, Strength: {multiplier}x)");
+        Debug.Log($"Applied {GetUpgradeTypeName(upgradeType)} upgrade with {multiplier}x multiplier");
     }
     
     // Helper method to get the name of the upgrade type
@@ -365,23 +620,82 @@ public class SlotMachine : MonoBehaviour
     
     private void CreateFloatingText(Vector3 position, string text, Color color)
     {
-        // Create a simple text popup if available
-        // This is optional and requires a floating text system
-        GameObject floatingTextPrefab = Resources.Load<GameObject>("Prefabs/UI/FloatingText");
+        Debug.Log($"SlotMachine: Creating floating text: '{text}' at {position}");
+        
+        // Use the new FloatingText system if prefab is assigned
         if (floatingTextPrefab != null)
         {
-            GameObject floatingText = Instantiate(floatingTextPrefab, position + Vector3.up, Quaternion.identity);
+            FloatingText.Create(floatingTextPrefab, position, text, color);
+        }
+        else
+        {
+            Debug.LogWarning("SlotMachine: No floatingTextPrefab assigned! Using fallback method.");
             
-            // Set text and color if possible
-            TMPro.TextMeshPro textComponent = floatingText.GetComponent<TMPro.TextMeshPro>();
-            if (textComponent != null)
+            // Fallback method using simple TextMesh
+            GameObject simpleText = new GameObject("SimpleFloatingText");
+            simpleText.transform.position = position + Vector3.up * 2.5f;
+            
+            // Add TextMesh component
+            TextMesh textMesh = simpleText.AddComponent<TextMesh>();
+            textMesh.text = text;
+            textMesh.color = color;
+            textMesh.fontSize = 40;
+            textMesh.characterSize = 0.07f;
+            textMesh.alignment = TextAlignment.Center;
+            textMesh.anchor = TextAnchor.MiddleCenter;
+            textMesh.fontStyle = FontStyle.Normal;
+            
+            // Add renderer
+            MeshRenderer meshRenderer = simpleText.GetComponent<MeshRenderer>();
+            if (meshRenderer != null)
             {
-                textComponent.text = text;
-                textComponent.color = color;
+                meshRenderer.material = new Material(Shader.Find("GUI/Text Shader"));
+                meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                meshRenderer.receiveShadows = false;
             }
             
-            // Destroy it after a few seconds
-            Destroy(floatingText, 2f);
+            // Face the camera
+            if (Camera.main != null)
+            {
+                simpleText.transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward);
+            }
+            
+            // Simple anonymous movement method instead of SimpleTextMover
+            StartCoroutine(AnimateFloatingText(simpleText, 3f));
+            
+            // Destroy after duration
+            Destroy(simpleText, 3f);
+        }
+    }
+    
+    // Coroutine to animate text without needing a separate class
+    private IEnumerator AnimateFloatingText(GameObject textObj, float duration)
+    {
+        float startTime = Time.time;
+        TextMesh textMesh = textObj.GetComponent<TextMesh>();
+        Color originalColor = textMesh.color;
+        
+        while (Time.time - startTime < duration)
+        {
+            // Move upward
+            textObj.transform.Translate(Vector3.up * Time.deltaTime);
+            
+            // Face camera
+            if (Camera.main != null)
+            {
+                textObj.transform.rotation = Quaternion.LookRotation(-Camera.main.transform.forward);
+            }
+            
+            // Fade out in the second half
+            float t = (Time.time - startTime) / duration;
+            if (t > 0.5f && textMesh != null)
+            {
+                Color newColor = originalColor;
+                newColor.a = 1f - ((t - 0.5f) * 2f);
+                textMesh.color = newColor;
+            }
+            
+            yield return null;
         }
     }
     
@@ -397,48 +711,70 @@ public class SlotMachine : MonoBehaviour
         }
     }
     
-    private void UpgradeDamage(float amount = -1f)
+    private void UpgradeDamage(float amount)
     {
-        // Use the default amount if none specified
-        if (amount < 0) amount = damageUpgradeAmount;
-        
         // Get card thrower reference from player
         CardThrower cardThrower = PlayerController.Instance.GetComponent<CardThrower>();
         if (cardThrower != null)
         {
             // Increase damage of all card types
+            float beforeDamage = cardThrower.GetCurrentDamage();
             cardThrower.IncreaseDamage(amount);
+            float afterDamage = cardThrower.GetCurrentDamage();
+            
+            Debug.Log($"SlotMachine: Damage upgrade applied - Before: {beforeDamage}, Added: {amount}, After: {afterDamage}, " +
+                     $"Actual Increase: {afterDamage - beforeDamage}");
+        }
+        else
+        {
+            Debug.LogWarning("SlotMachine: CardThrower component not found on player!");
         }
     }
     
-    private void UpgradeHealth(float amount = -1f)
+    private void UpgradeHealth(float amount)
     {
-        // Use the default amount if none specified
-        if (amount < 0) amount = healthUpgradeAmount;
-        
         // Increase max health
         PlayerController player = PlayerController.Instance;
-        player.IncreaseMaxHealth(amount);
+        if (player != null)
+        {
+            float beforeHealth = player.GetMaxHealth();
+            player.IncreaseMaxHealth(amount);
+            float afterHealth = player.GetMaxHealth();
+            
+            Debug.Log($"SlotMachine: Health upgrade applied - Before: {beforeHealth}, Added: {amount}, After: {afterHealth}, " +
+                     $"Actual Increase: {afterHealth - beforeHealth}");
+        }
     }
     
-    private void UpgradeSpeed(float amount = -1f)
+    private void UpgradeSpeed(float amount)
     {
-        // Use the default amount if none specified
-        if (amount < 0) amount = speedUpgradeAmount;
-        
-        // Increase movement speed
+        // Use the exact amount specified
         PlayerController player = PlayerController.Instance;
-        player.IncreaseMovementSpeed(amount);
+        if (player != null)
+        {
+            // Track before and after values for debugging
+            float beforeSpeed = player.GetCurrentMovementSpeed();
+            player.IncreaseMovementSpeed(amount);
+            float afterSpeed = player.GetCurrentMovementSpeed();
+            
+            Debug.Log($"SlotMachine: Speed upgrade applied - Before: {beforeSpeed}, Added: {amount}, After: {afterSpeed}, " +
+                     $"Actual Increase: {afterSpeed - beforeSpeed}");
+        }
     }
     
-    private void UpgradeDash(float amount = -1f)
+    private void UpgradeDash(float amount)
     {
-        // Use the default amount if none specified
-        if (amount < 0) amount = dashUpgradeAmount;
-        
         // Increase dash range/speed
         PlayerController player = PlayerController.Instance;
-        player.IncreaseDashPower(amount);
+        if (player != null)
+        {
+            float beforeDash = player.GetCurrentDashPower();
+            player.IncreaseDashPower(amount);
+            float afterDash = player.GetCurrentDashPower();
+            
+            Debug.Log($"SlotMachine: Dash upgrade applied - Before: {beforeDash}, Added: {amount}, After: {afterDash}, " +
+                     $"Actual Increase: {afterDash - beforeDash}");
+        }
     }
     
     private void OnDrawGizmosSelected()
@@ -447,4 +783,4 @@ public class SlotMachine : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, interactionRange);
     }
-} 
+}
