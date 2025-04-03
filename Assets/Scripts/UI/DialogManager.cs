@@ -93,4 +93,15 @@ public class DialogManager : MonoBehaviour
         
         canvasGroup.alpha = 0;
     }
+
+    // Add a public getter for the display duration
+    public float GetDisplayDuration()
+    {
+        // Return the total estimated time for dialog display
+        // This includes fade in, typewriter time for a typical message, display duration, and fade out
+        float typicalCharCount = 100; // Assume average dialog length
+        float totalEstimatedTime = (1/fadeSpeed) + (typewriterSpeed * typicalCharCount) + displayDuration + (1/fadeSpeed);
+        
+        return totalEstimatedTime;
+    }
 } 

@@ -36,6 +36,7 @@ public class GeccoInteraction : MonoBehaviour
     private bool isInRange = false;
     private float cooldownTimer = 0f;
     private DialogManager dialogManager;
+    private GeckoTalkSound talkSound;
     
     private void Start()
     {
@@ -53,6 +54,15 @@ public class GeccoInteraction : MonoBehaviour
             {
                 dialogManager = dialogContainer.AddComponent<DialogManager>();
             }
+        }
+        
+        // Get sound component
+        talkSound = GetComponent<GeckoTalkSound>();
+        if (talkSound == null)
+        {
+            // Add it if missing
+            talkSound = gameObject.AddComponent<GeckoTalkSound>();
+            Debug.Log("GeccoInteraction: Added GeckoTalkSound component");
         }
     }
     
@@ -81,6 +91,13 @@ public class GeccoInteraction : MonoBehaviour
     {
         if (isInRange && canInteract && Keyboard.current.eKey.wasPressedThisFrame)
         {
+            // Play sound directly on E key press
+            if (talkSound != null)
+            {
+                talkSound.PlayTalkSound();
+                Debug.Log("GeccoInteraction: Called PlayTalkSound from HandleInteraction");
+            }
+            
             SpawnRandomBoss();
             StartCooldown();
         }
@@ -144,6 +161,29 @@ public class GeccoInteraction : MonoBehaviour
         
         // Show dialog with typewriter effect
         dialogManager.ShowDialog(dialogText);
+        
+        // Register for dialog close notification
+        StartCoroutine(WaitForDialogToClose());
+    }
+    
+    // Wait for dialog to close and stop sounds
+    private IEnumerator WaitForDialogToClose()
+    {
+        // Wait for dialog container to become inactive
+        if (dialogContainer != null)
+        {
+            // Wait until it's no longer active
+            while (dialogContainer.activeSelf)
+            {
+                yield return null;
+            }
+            
+            // Dialog is now closed, stop sound
+            if (talkSound != null)
+            {
+                talkSound.StopTalkSound();
+            }
+        }
     }
     
     private void StartCooldown()

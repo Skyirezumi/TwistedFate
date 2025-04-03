@@ -90,9 +90,17 @@ public class Pickup : MonoBehaviour
         {
             case PickUpType.GoldCoin:
                 EconomyManager.Instance.UpdateCurrentGold();
+                // Play coin collect sound
+                if (SoundFXManager.Instance != null) {
+                    SoundFXManager.Instance.PlayCoinCollectSound();
+                }
                 break;
             case PickUpType.HealthGlobe:
                 PlayerHealth.Instance.HealPlayer();
+                // Play heart collect sound
+                if (SoundFXManager.Instance != null) {
+                    SoundFXManager.Instance.PlayHeartCollectSound();
+                }
                 break;
             default:
                 break;

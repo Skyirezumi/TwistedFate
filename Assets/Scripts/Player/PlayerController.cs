@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     private AudioSource audioSource;
     private bool isPlayingFootstep = false;
     private Coroutine currentFootstepCoroutine;
+    private List<GameObject> activeFootstepSounds = new List<GameObject>();
 
     private bool isDashing = false;
     private bool isShooting = false;
@@ -506,13 +507,16 @@ public class PlayerController : MonoBehaviour
             // Reset timer when not moving
             footstepTimer = 0;
             
-            // Stop any playing footstep sound when player stops moving
+            // Stop any playing footstep coroutine when player stops moving
             if (isPlayingFootstep && currentFootstepCoroutine != null)
             {
                 StopCoroutine(currentFootstepCoroutine);
                 isPlayingFootstep = false;
                 currentFootstepCoroutine = null;
             }
+            
+            // Quickly fade out any active footstep sounds
+            FadeOutAllFootsteps();
         }
     }
 
@@ -533,19 +537,76 @@ public class PlayerController : MonoBehaviour
             GameObject tempAudio = new GameObject("TempFootstepSound");
             tempAudio.transform.position = transform.position;
             tempAudio.transform.parent = transform;
+            
             AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
             tempSource.clip = footstepSound;
             tempSource.volume = footstepVolume;
             tempSource.spatialBlend = 1.0f;
             tempSource.Play();
             
+            // Keep track of active sounds so we can fade them out if needed
+            activeFootstepSounds.Add(tempAudio);
+            
             // Clean up the audio when done
             float soundDuration = footstepSound.length * 0.8f;
             yield return new WaitForSeconds(soundDuration);
+            
+            // Remove from active sounds list and destroy
+            activeFootstepSounds.Remove(tempAudio);
             Destroy(tempAudio);
         }
         
         isPlayingFootstep = false;
         currentFootstepCoroutine = null;
+    }
+    
+    // Quick fade out of all active footstep sounds
+    private void FadeOutAllFootsteps()
+    {
+        if (activeFootstepSounds.Count == 0) return;
+        
+        // Start fade out on all active footstep sounds
+        foreach (GameObject soundObj in activeFootstepSounds.ToArray())
+        {
+            if (soundObj != null)
+            {
+                StartCoroutine(QuickFadeOut(soundObj));
+            }
+        }
+        
+        // Clear the list since we're handling them all
+        activeFootstepSounds.Clear();
+    }
+    
+    // Coroutine for a very quick fade-out and destroy
+    private IEnumerator QuickFadeOut(GameObject soundObj)
+    {
+        AudioSource source = soundObj.GetComponent<AudioSource>();
+        if (source == null)
+        {
+            Destroy(soundObj);
+            yield break;
+        }
+        
+        // Very quick fade-out (0.1 seconds)
+        float fadeTime = 0.1f;
+        float startVolume = source.volume;
+        float timer = 0;
+        
+        while (timer < fadeTime && soundObj != null)
+        {
+            timer += Time.deltaTime;
+            if (source != null)
+            {
+                source.volume = Mathf.Lerp(startVolume, 0, timer / fadeTime);
+            }
+            yield return null;
+        }
+        
+        // Destroy after fade-out
+        if (soundObj != null)
+        {
+            Destroy(soundObj);
+        }
     }
 }
