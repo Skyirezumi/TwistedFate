@@ -1,107 +1,103 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class DialogManager : MonoBehaviour
 {
-    [SerializeField] private float typewriterSpeed = 0.05f;
-    [SerializeField] private float fadeSpeed = 1.0f;
-    [SerializeField] private float displayDuration = 3.0f;
+    public static DialogManager Instance;
     
-    private CanvasGroup canvasGroup;
-    private TextMeshProUGUI dialogText;
+    [SerializeField] private GameObject dialogPanel;
+    [SerializeField] private TextMeshProUGUI dialogText;
+    [SerializeField] private float defaultDisplayTime = 3f;
+    
+    private Coroutine autoCloseCoroutine;
     
     private void Awake()
     {
-        canvasGroup = GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-        {
-            canvasGroup = gameObject.AddComponent<CanvasGroup>();
-        }
+        Instance = this;
         
-        dialogText = GetComponentInChildren<TextMeshProUGUI>();
-        if (dialogText == null)
-        {
-            Debug.LogError("No TextMeshProUGUI component found in children of DialogManager!");
-        }
-        
-        // Ensure dialog is hidden at start
-        canvasGroup.alpha = 0;
-        gameObject.SetActive(false);
+        // Ensure dialog panel is hidden at start
+        HideDialogueComponents();
+    }
+    
+    private void Start()
+    {
+        // Double-check that everything is hidden at start
+        HideDialogueComponents();
     }
     
     public void ShowDialog(string message)
     {
-        gameObject.SetActive(true);
-        StopAllCoroutines();
-        StartCoroutine(AnimateDialog(message));
-    }
-    
-    private IEnumerator AnimateDialog(string message)
-    {
-        // Fade in
-        canvasGroup.alpha = 0;
-        dialogText.text = "";
+        Debug.Log("DialogManager: Showing dialog: " + message);
         
-        yield return StartCoroutine(FadeIn());
-        
-        // Typewriter effect
-        yield return StartCoroutine(TypewriterEffect(message));
-        
-        // Wait for display duration
-        yield return new WaitForSeconds(displayDuration);
-        
-        // Fade out
-        yield return StartCoroutine(FadeOut());
-        
-        gameObject.SetActive(false);
-    }
-    
-    private IEnumerator TypewriterEffect(string message)
-    {
-        dialogText.text = "";
-        
-        foreach (char c in message.ToCharArray())
+        // Stop any existing auto-close coroutine
+        if (autoCloseCoroutine != null)
         {
-            dialogText.text += c;
-            yield return new WaitForSeconds(typewriterSpeed);
+            StopCoroutine(autoCloseCoroutine);
+            autoCloseCoroutine = null;
+        }
+        
+        // Show the panel and set text
+        if (dialogPanel != null)
+        {
+            dialogPanel.SetActive(true);
+            
+            if (dialogText != null)
+            {
+                // Make sure text component itself is enabled
+                dialogText.gameObject.SetActive(true);
+                dialogText.text = message;
+            }
+            else
+            {
+                Debug.LogError("DialogManager: Dialog text component not assigned!");
+            }
+        }
+        else
+        {
+            Debug.LogError("DialogManager: Dialog panel not assigned!");
+        }
+        
+        // Start auto-close coroutine if using default behavior
+        // (NPCs will manually close dialog when needed)
+        autoCloseCoroutine = StartCoroutine(AutoCloseDialog());
+    }
+    
+    private System.Collections.IEnumerator AutoCloseDialog()
+    {
+        yield return new WaitForSeconds(defaultDisplayTime);
+        CloseDialog();
+        autoCloseCoroutine = null;
+    }
+    
+    public void CloseDialog()
+    {
+        Debug.Log("DialogManager: Closing dialog");
+        
+        HideDialogueComponents();
+        
+        // Stop auto-close coroutine if it's running
+        if (autoCloseCoroutine != null)
+        {
+            StopCoroutine(autoCloseCoroutine);
+            autoCloseCoroutine = null;
         }
     }
     
-    private IEnumerator FadeIn()
+    // Helper method to ensure everything is hidden
+    private void HideDialogueComponents()
     {
-        canvasGroup.alpha = 0;
-        
-        while (canvasGroup.alpha < 1)
+        // Hide panel
+        if (dialogPanel != null)
         {
-            canvasGroup.alpha += Time.deltaTime * fadeSpeed;
-            yield return null;
+            dialogPanel.SetActive(false);
         }
         
-        canvasGroup.alpha = 1;
-    }
-    
-    private IEnumerator FadeOut()
-    {
-        canvasGroup.alpha = 1;
-        
-        while (canvasGroup.alpha > 0)
+        // Also explicitly hide the text component
+        if (dialogText != null)
         {
-            canvasGroup.alpha -= Time.deltaTime * fadeSpeed;
-            yield return null;
+            dialogText.gameObject.SetActive(false);
         }
-        
-        canvasGroup.alpha = 0;
-    }
-
-    // Add a public getter for the display duration
-    public float GetDisplayDuration()
-    {
-        // Return the total estimated time for dialog display
-        // This includes fade in, typewriter time for a typical message, display duration, and fade out
-        float typicalCharCount = 100; // Assume average dialog length
-        float totalEstimatedTime = (1/fadeSpeed) + (typewriterSpeed * typicalCharCount) + displayDuration + (1/fadeSpeed);
-        
-        return totalEstimatedTime;
     }
 } 

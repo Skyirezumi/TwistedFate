@@ -13,6 +13,90 @@ public class EnemyPathfinding : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Vector2 nextPosition;
 
+    // Stun functionality
+    
+    private bool isStunned = false;
+    private Coroutine stunCoroutine;
+    
+    public void ApplyStun(float duration)
+    {
+        // Stop existing stun coroutine if active
+        if (stunCoroutine != null)
+        {
+            StopCoroutine(stunCoroutine);
+        }
+        
+        // Start new stun
+        stunCoroutine = StartCoroutine(StunRoutine(duration));
+    }
+    
+    private IEnumerator StunRoutine(float duration)
+    {
+        // Apply stun
+        isStunned = true;
+        
+        // Create stun visual effect
+        GameObject stunEffect = CreateStunEffect();
+        
+        // Store original speed
+        float originalSpeed = moveSpeed;
+        
+        // Set speed to 0 to stop movement
+        moveSpeed = 0f;
+        
+        // Wait for duration
+        yield return new WaitForSeconds(duration);
+        
+        // Remove stun
+        isStunned = false;
+        
+        // Restore speed
+        moveSpeed = originalSpeed;
+        
+        // Clean up stun effect
+        if (stunEffect != null)
+        {
+            Destroy(stunEffect);
+        }
+        
+        stunCoroutine = null;
+    }
+    
+    private GameObject CreateStunEffect()
+    {
+        // Create a visual indicator for the stun effect
+        GameObject stunObject = new GameObject("StunEffect");
+        stunObject.transform.parent = transform;
+        stunObject.transform.localPosition = new Vector3(0, 0.5f, 0); // Position above the enemy
+        
+        // Add a sprite renderer to show stars or other stun indicator
+        SpriteRenderer renderer = stunObject.AddComponent<SpriteRenderer>();
+        
+        // Create a simple particle effect for stun
+        ParticleSystem particleSystem = stunObject.AddComponent<ParticleSystem>();
+        
+        // Configure basic particle system to look like stars or similar
+        var main = particleSystem.main;
+        main.startColor = new ParticleSystem.MinMaxGradient(Color.yellow, Color.white);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.3f);
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.5f, 1.0f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.1f, 0.3f);
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        
+        // Emission
+        var emission = particleSystem.emission;
+        emission.rateOverTime = 8;
+        
+        // Shape
+        var shape = particleSystem.shape;
+        shape.shapeType = ParticleSystemShapeType.Circle;
+        shape.radius = 0.3f;
+        
+        particleSystem.Play();
+        
+        return stunObject;
+    }
+
     private void Awake() {
         spriteRenderer = GetComponent<SpriteRenderer>();
         knockback = GetComponent<Knockback>();
@@ -94,5 +178,17 @@ public class EnemyPathfinding : MonoBehaviour
 
     public void StopMoving() {
         moveDir = Vector3.zero;
+    }
+
+    // Modify the Update method to check for stun
+    private void Update()
+    {
+        // Skip movement if stunned
+        if (isStunned)
+        {
+            return;
+        }
+        
+        // Existing movement code...
     }
 }

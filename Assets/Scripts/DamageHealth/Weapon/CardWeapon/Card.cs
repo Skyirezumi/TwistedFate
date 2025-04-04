@@ -182,6 +182,20 @@ public class Card : MonoBehaviour
         float radius = stats.explosionRadius.GetValue();
         int damage = GetDamage();
         
+        // Apply card type specific effects
+        switch (cardType)
+        {
+            case CardType.Red:
+                ApplyRedCardEffect(target, radius, damage);
+                break;
+            case CardType.Green:
+                ApplyGreenCardEffect(target, radius, damage);
+                break;
+            case CardType.Blue:
+                ApplyBlueCardEffect(target, radius, damage);
+                break;
+        }
+        
         // Create impact effect
         if (effectPrefab != null)
         {
@@ -205,9 +219,111 @@ public class Card : MonoBehaviour
                 Destroy(effect, lifetime);
             }
         }
-        
-        // Apply damage in radius
+    }
+    
+    protected virtual void ApplyRedCardEffect(GameObject target, float radius, int damage)
+    {
+        // Red card - standard damage with possible poison
         ApplyDamageInRadius(transform.position, radius, damage);
+        
+        // Check if poison upgrade is active
+        CardThrower cardThrower = FindCardThrower();
+        if (cardThrower != null && cardThrower.HasRedPoisonUpgrade())
+        {
+            // Apply poison to all targets in radius
+            ApplyPoisonInRadius(transform.position, radius, 
+                cardThrower.GetRedPoisonDamagePerSecond(), 
+                cardThrower.GetRedPoisonDuration());
+        }
+    }
+    
+    protected virtual void ApplyGreenCardEffect(GameObject target, float radius, int damage)
+    {
+        // Green card - larger area damage (radius already affected by upgrade in CardThrower)
+        ApplyDamageInRadius(transform.position, radius, damage);
+    }
+    
+    protected virtual void ApplyBlueCardEffect(GameObject target, float radius, int damage)
+    {
+        // Blue card - standard damage with possible stun
+        ApplyDamageInRadius(transform.position, radius, damage);
+        
+        // Check if stun upgrade is active
+        CardThrower cardThrower = FindCardThrower();
+        if (cardThrower != null && cardThrower.HasBlueStunUpgrade())
+        {
+            // Apply stun to all targets in radius
+            ApplyStunInRadius(transform.position, radius, cardThrower.GetBlueStunDuration());
+        }
+    }
+    
+    protected virtual void ApplyPoisonInRadius(Vector2 position, float radius, float damagePerSecond, float duration)
+    {
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(position, radius);
+        foreach (Collider2D hitCollider in hitColliders)
+        {
+            // Apply poison to any enemy
+            EnemyHealth enemyHealth = hitCollider.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                // Create or get poison effect controller
+                PoisonEffect poisonEffect = enemyHealth.gameObject.GetComponent<PoisonEffect>();
+                if (poisonEffect == null)
+                {
+                    poisonEffect = enemyHealth.gameObject.AddComponent<PoisonEffect>();
+                }
+                
+                // Apply poison
+                poisonEffect.ApplyPoison(damagePerSecond, duration);
+                
+                Debug.Log($"Applied poison to {hitCollider.name}: {damagePerSecond} DPS for {duration}s");
+            }
+        }
+    }
+    
+    protected virtual void ApplyStunInRadius(Vector2 position, float radius, float duration)
+    {
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(position, radius);
+        foreach (Collider2D hitCollider in hitColliders)
+        {
+            // Apply stun to any enemy with pathfinding
+            EnemyPathfinding pathfinding = hitCollider.GetComponent<EnemyPathfinding>();
+            if (pathfinding != null)
+            {
+                pathfinding.ApplyStun(duration);
+                Debug.Log($"Applied stun to {hitCollider.name} for {duration}s");
+            }
+            
+            // Also try to affect any enemy AI
+            EnemyAI enemyAI = hitCollider.GetComponent<EnemyAI>();
+            if (enemyAI != null)
+            {
+                enemyAI.ApplyStun(duration);
+                Debug.Log($"Applied stun to AI {hitCollider.name} for {duration}s");
+            }
+        }
+    }
+    
+    protected virtual CardThrower FindCardThrower()
+    {
+        // Try to find on player first
+        if (PlayerController.Instance != null)
+        {
+            CardThrower thrower = PlayerController.Instance.GetComponent<CardThrower>();
+            if (thrower != null)
+            {
+                return thrower;
+            }
+        }
+        
+        // As fallback, look for any CardThrower in scene
+        CardThrower[] throwers = Object.FindObjectsOfType<CardThrower>();
+        if (throwers.Length > 0)
+        {
+            return throwers[0];
+        }
+        
+        return null;
     }
     
     protected virtual void ApplyHoming()

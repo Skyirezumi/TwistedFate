@@ -38,6 +38,15 @@ public class CardThrower : MonoBehaviour
     [Header("UI")]
     [SerializeField] private Image cooldownImage; // UI Image for cooldown indicator
     
+    [Header("Card Upgrades")]
+    [SerializeField] private bool greenCardAreaUpgrade = false;
+    [SerializeField] private bool blueCardStunUpgrade = false;
+    [SerializeField] private bool redCardPoisonUpgrade = false;
+    [SerializeField] private float greenAreaIncreaseAmount = 1.5f;
+    [SerializeField] private float blueStunDuration = 1.0f;
+    [SerializeField] private float redPoisonDuration = 3.0f;
+    [SerializeField] private float redPoisonDamagePerSecond = 2.0f;
+    
     private bool canThrow = true;
     private bool canSwitchCardType = true;
     private Camera mainCamera;
@@ -355,4 +364,71 @@ public class CardThrower : MonoBehaviour
         yield return null; // Wait one frame
         audioSource.volume = 1.0f; // Reset to normal volume
     }
+    
+    // Apply upgrades
+    public void ApplyGreenAreaUpgrade()
+    {
+        if (!greenCardAreaUpgrade)
+        {
+            greenCardAreaUpgrade = true;
+            
+            // Increase explosion radius for green cards
+            if (greenCardStats != null)
+            {
+                float oldValue = greenCardStats.explosionRadius.GetValue();
+                
+                // Directly modify the base value instead of using AddModifier
+                greenCardStats.explosionRadius.baseValue += greenAreaIncreaseAmount;
+                
+                float newValue = greenCardStats.explosionRadius.GetValue();
+                
+                Debug.Log($"Green card area upgraded: {oldValue} -> {newValue}");
+            }
+            else
+            {
+                Debug.LogError("Green card stats not found for area upgrade!");
+            }
+        }
+        else
+        {
+            Debug.Log("Green card area upgrade already applied!");
+        }
+    }
+    
+    public void ApplyBlueStunUpgrade()
+    {
+        if (!blueCardStunUpgrade)
+        {
+            blueCardStunUpgrade = true;
+            Debug.Log($"Blue card stun upgrade applied: {blueStunDuration} seconds");
+        }
+        else
+        {
+            Debug.Log("Blue card stun upgrade already applied!");
+        }
+    }
+    
+    public void ApplyRedPoisonUpgrade()
+    {
+        if (!redCardPoisonUpgrade)
+        {
+            redCardPoisonUpgrade = true;
+            Debug.Log($"Red card poison upgrade applied: {redPoisonDamagePerSecond} damage per second for {redPoisonDuration} seconds");
+        }
+        else
+        {
+            Debug.Log("Red card poison upgrade already applied!");
+        }
+    }
+    
+    // Getters for upgrade status
+    public bool HasGreenAreaUpgrade() { return greenCardAreaUpgrade; }
+    public bool HasBlueStunUpgrade() { return blueCardStunUpgrade; }
+    public bool HasRedPoisonUpgrade() { return redCardPoisonUpgrade; }
+    
+    // Getters for upgrade parameters
+    public float GetGreenAreaIncreaseAmount() { return greenAreaIncreaseAmount; }
+    public float GetBlueStunDuration() { return blueStunDuration; }
+    public float GetRedPoisonDuration() { return redPoisonDuration; }
+    public float GetRedPoisonDamagePerSecond() { return redPoisonDamagePerSecond; }
 } 
