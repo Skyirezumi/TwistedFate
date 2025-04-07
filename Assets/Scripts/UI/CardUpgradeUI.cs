@@ -213,6 +213,24 @@ public class CardUpgradeUI : MonoBehaviour
             case CardUpgradeType.RedPoison:
                 cardThrower.ApplyRedPoisonUpgrade();
                 break;
+            case CardUpgradeType.RedFanShot:
+                cardThrower.ApplyRedFanShotUpgrade();
+                break;
+            case CardUpgradeType.BlueFanShot:
+                cardThrower.ApplyBlueFanShotUpgrade();
+                break;
+            case CardUpgradeType.GreenFanShot:
+                cardThrower.ApplyGreenFanShotUpgrade();
+                break;
+            case CardUpgradeType.RedVampire:
+                cardThrower.ApplyRedVampireUpgrade();
+                break;
+            case CardUpgradeType.BlueVampire:
+                cardThrower.ApplyBlueVampireUpgrade();
+                break;
+            case CardUpgradeType.GreenVampire:
+                cardThrower.ApplyGreenVampireUpgrade();
+                break;
             default:
                 Debug.LogWarning("CardUpgradeUI: Unknown upgrade type: " + upgrade.type);
                 break;

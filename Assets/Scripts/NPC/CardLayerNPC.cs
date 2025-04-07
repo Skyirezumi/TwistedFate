@@ -174,7 +174,13 @@ public class CardLayerNPC : MonoBehaviour
         {
             new CardUpgrade(CardUpgradeType.GreenAreaOfEffect, "Larger Green AOE", "Increases the area of effect for green cards"),
             new CardUpgrade(CardUpgradeType.BlueStun, "Blue Stun", "Blue cards now stun enemies for 1 second"),
-            new CardUpgrade(CardUpgradeType.RedPoison, "Red Poison", "Red cards apply poison damage over time")
+            new CardUpgrade(CardUpgradeType.RedPoison, "Red Poison", "Red cards apply poison damage over time"),
+            new CardUpgrade(CardUpgradeType.RedFanShot, "Red Fan Shot", "Red cards split into 3 projectiles at half distance"),
+            new CardUpgrade(CardUpgradeType.BlueFanShot, "Blue Fan Shot", "Blue cards split into 3 projectiles at half distance"),
+            new CardUpgrade(CardUpgradeType.GreenFanShot, "Green Fan Shot", "Green cards split into 3 projectiles at half distance"),
+            new CardUpgrade(CardUpgradeType.RedVampire, "Red Vampire", "Red cards heal you for 20% of damage dealt"),
+            new CardUpgrade(CardUpgradeType.BlueVampire, "Blue Vampire", "Blue cards heal you for 20% of damage dealt"),
+            new CardUpgrade(CardUpgradeType.GreenVampire, "Green Vampire", "Green cards heal you for 20% of damage dealt")
         };
         
         // Shuffle the list
@@ -382,29 +388,5 @@ public class CardLayerNPC : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, interactionRange);
-    }
-}
-
-// Define card upgrade types
-public enum CardUpgradeType
-{
-    GreenAreaOfEffect,
-    BlueStun,
-    RedPoison
-}
-
-// Class to hold upgrade data
-[System.Serializable]
-public class CardUpgrade
-{
-    public CardUpgradeType type;
-    public string title;
-    public string description;
-    
-    public CardUpgrade(CardUpgradeType type, string title, string description)
-    {
-        this.type = type;
-        this.title = title;
-        this.description = description;
     }
 } 

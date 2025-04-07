@@ -42,16 +42,26 @@ public class CardThrower : MonoBehaviour
     [SerializeField] private bool greenCardAreaUpgrade = false;
     [SerializeField] private bool blueCardStunUpgrade = false;
     [SerializeField] private bool redCardPoisonUpgrade = false;
+    [SerializeField] private bool redFanShotUpgrade = false; // Red fan shot
+    [SerializeField] private bool blueFanShotUpgrade = false; // Blue fan shot
+    [SerializeField] private bool greenFanShotUpgrade = false; // Green fan shot
+    [SerializeField] private bool redVampireUpgrade = false; // Red vampire upgrade
+    [SerializeField] private bool blueVampireUpgrade = false; // Blue vampire upgrade
+    [SerializeField] private bool greenVampireUpgrade = false; // Green vampire upgrade
     [SerializeField] private float greenAreaIncreaseAmount = 1.5f;
     [SerializeField] private float blueStunDuration = 1.0f;
     [SerializeField] private float redPoisonDuration = 3.0f;
     [SerializeField] private float redPoisonDamagePerSecond = 2.0f;
+    [SerializeField] private float fanShotAngleSpread = 15f; // Angle between fan cards
+    [SerializeField] private float fanShotDamageMultiplier = 0.7f; // Damage reduction for each fan card
+    [SerializeField] private float vampireHealPercent = 0.2f; // Vampire heals 20% of damage
     
     private bool canThrow = true;
     private bool canSwitchCardType = true;
     private Camera mainCamera;
     private float currentCooldown;
     
+    // Start method
     private void Start()
     {
         mainCamera = Camera.main;
@@ -80,6 +90,13 @@ public class CardThrower : MonoBehaviour
                 audioSource.volume = 1.0f;
             }
         }
+        
+        // Comment out automatic enabling of all upgrades
+        // Now only cards with specific upgrades will split
+        // redFanShotUpgrade = true;
+        // blueFanShotUpgrade = true;
+        // greenFanShotUpgrade = true;
+        // Debug.Log("<color=yellow>TESTING: All fan shot upgrades enabled for testing</color>");
     }
     
     // This is only used for cooldown tracking
@@ -114,18 +131,18 @@ public class CardThrower : MonoBehaviour
         mousePosition.z = throwPoint.position.z;
         
         // Calculate direction from throwPoint to mouse position
-        Vector2 direction = mousePosition - throwPoint.position;
-        direction.Normalize();
+        Vector2 baseDirection = mousePosition - throwPoint.position;
+        baseDirection.Normalize();
         
-        Debug.Log($"Mouse position: {mousePosition}, Direction: {direction}");
+        Debug.Log($"Base direction: {baseDirection}");
         
-        if (direction.magnitude < 0.1f)
+        if (baseDirection.magnitude < 0.1f)
         {
             Debug.LogWarning("Direction magnitude too small, defaulting to right");
-            direction = Vector2.right;
+            baseDirection = Vector2.right;
         }
         
-        // Randomly select which card to throw
+        // Randomly select which card to throw (type remains consistent for fan shot)
         int randomCard = Random.Range(0, 3);
         Card.CardType cardType = Card.CardType.Red;
         Sprite cardSprite = redCardSprite;
@@ -141,7 +158,7 @@ public class CardThrower : MonoBehaviour
                 effectPrefab = redEffectPrefab;
                 stats = redCardStats;
                 cardColor = Color.red;
-                Debug.Log("Throwing RED card");
+                Debug.Log("Selected RED card type");
                 break;
             case 1: // Green card
                 cardType = Card.CardType.Green;
@@ -149,7 +166,7 @@ public class CardThrower : MonoBehaviour
                 effectPrefab = greenEffectPrefab;
                 stats = greenCardStats;
                 cardColor = Color.green;
-                Debug.Log("Throwing GREEN card");
+                Debug.Log("Selected GREEN card type");
                 break;
             case 2: // Blue card
                 cardType = Card.CardType.Blue;
@@ -157,98 +174,170 @@ public class CardThrower : MonoBehaviour
                 effectPrefab = blueEffectPrefab;
                 stats = blueCardStats;
                 cardColor = Color.blue;
-                Debug.Log("Throwing BLUE card");
+                Debug.Log("Selected BLUE card type");
                 break;
         }
         
-        // Play throw sound if assigned
-        if (cardShootSounds != null && cardShootSounds.Length > 0)
+        // Play throw sound
+        PlayThrowSound();
+        
+        // Check if this card type has its specific fan shot upgrade
+        bool shouldSplit = false;
+        bool hasVampire = false;
+        
+        // Check for fan shot upgrade
+        if (cardType == Card.CardType.Red && redFanShotUpgrade)
         {
-            // Check for null entries in the array
-            bool hasValidSounds = false;
-            foreach (AudioClip clip in cardShootSounds)
-            {
-                if (clip != null)
-                {
-                    hasValidSounds = true;
-                    break;
-                }
-            }
-            
-            if (hasValidSounds)
-            {
-                // Get a random sound that isn't null
-                AudioClip soundToPlay = null;
-                while (soundToPlay == null && hasValidSounds)
-                {
-                    int randomIndex = Random.Range(0, cardShootSounds.Length);
-                    soundToPlay = cardShootSounds[randomIndex];
-                    if (soundToPlay == null)
-                    {
-                        continue; // Try again if we got a null clip
-                    }
-                }
-                
-                if (soundToPlay != null)
-                {
-                    // SUPER SUPER LOUD - boost volume to extreme levels
-                    audioSource.volume = 6.0f; // Double the previous volume (3.0 -> 6.0)
-                    audioSource.PlayOneShot(soundToPlay, 6.0f); // Double the previous volume (3.0 -> 6.0)
-                    Debug.Log($"Playing card throw sound: {soundToPlay.name} at EXTREME volume 6.0");
-                    // Reset volume after a frame to not affect other sounds
-                    StartCoroutine(ResetVolumeAfterSound());
-                }
-                else
-                {
-                    Debug.LogWarning("All card shoot sounds are null!");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Card shoot sounds array contains only null entries!");
-            }
+            shouldSplit = true;
+            Debug.Log("<color=red>RED fan shot upgrade active!</color>");
         }
-        else
+        else if (cardType == Card.CardType.Blue && blueFanShotUpgrade)
         {
-            Debug.LogWarning("No card shoot sounds assigned!");
+            shouldSplit = true;
+            Debug.Log("<color=blue>BLUE fan shot upgrade active!</color>");
+        }
+        else if (cardType == Card.CardType.Green && greenFanShotUpgrade)
+        {
+            shouldSplit = true;
+            Debug.Log("<color=green>GREEN fan shot upgrade active!</color>");
         }
         
-        // Calculate exact angle for card orientation
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        // Check for vampire upgrade
+        if (cardType == Card.CardType.Red && redVampireUpgrade)
+        {
+            hasVampire = true;
+            Debug.Log("<color=red>RED vampire upgrade active!</color>");
+        }
+        else if (cardType == Card.CardType.Blue && blueVampireUpgrade)
+        {
+            hasVampire = true;
+            Debug.Log("<color=blue>BLUE vampire upgrade active!</color>");
+        }
+        else if (cardType == Card.CardType.Green && greenVampireUpgrade)
+        {
+            hasVampire = true;
+            Debug.Log("<color=green>GREEN vampire upgrade active!</color>");
+        }
         
-        // Instantiate card with correct rotation
+        // Spawn and launch card with appropriate settings
+        SpawnAndLaunchCard(cardType, cardSprite, effectPrefab, stats, cardColor, baseDirection, 1.0f, shouldSplit, hasVampire);
+    }
+    
+    // Helper method to spawn and launch a single card
+    private void SpawnAndLaunchCard(Card.CardType type, Sprite sprite, GameObject effect, CardStats baseStats, Color color, Vector2 direction, float damageMultiplier, bool shouldSplit = false, bool hasVampire = false)
+    {
+        // Create new card at throw point
         GameObject cardObject = Instantiate(cardPrefab, throwPoint.position, Quaternion.identity);
+        SpriteRenderer sr = cardObject.GetComponent<SpriteRenderer>();
         
-        // Get the Card component and set it up
+        // Set card sprite
+        if (sr != null)
+        {
+            sr.sprite = sprite;
+        }
+        
+        // Get Card component and initialize it
         Card card = cardObject.GetComponent<Card>();
         if (card != null)
         {
-            // First set sprite
-            SpriteRenderer spriteRenderer = cardObject.GetComponent<SpriteRenderer>();
-            if (spriteRenderer != null && cardSprite != null)
+            // Direction should be normalized to ensure consistent speed
+            Vector2 normalizedDirection = direction.normalized;
+            
+            // Pass the effect prefab and color, and set the shouldSplit flag for fan shot
+            // Also pass vampire upgrade status
+            card.Initialize(
+                type, 
+                baseStats, 
+                effect, 
+                color, 
+                cardCollisionSounds, 
+                damageMultiplier, 
+                shouldSplit, 
+                fanShotAngleSpread, 
+                fanShotDamageMultiplier,
+                hasVampire,
+                vampireHealPercent
+            );
+            
+            // Launch in the calculated direction
+            card.Launch(normalizedDirection);
+            
+            // Set damage amount (a bit redundant since Card.GetDamage() now uses stats.damage)
+            DamageSource damageSource = cardObject.GetComponent<DamageSource>();
+            if (damageSource != null)
             {
-                spriteRenderer.sprite = cardSprite;
-                spriteRenderer.color = cardColor; // Set color directly too
-                Debug.Log($"Set sprite and color for {cardType} card");
+                int actualDamage;
+                float damageModifier = 1.0f;
+                
+                // Apply damage multiplier if needed (for charge shots or fan shots)
+                if (damageMultiplier != 1.0f)
+                {
+                    damageModifier = damageMultiplier;
+                }
+                
+                // Use baseValue from stats and apply modifier
+                actualDamage = Mathf.RoundToInt(baseStats.damage.baseValue * damageModifier);
+                
+                // Don't try to set damageAmount directly since it's protected
+                // The Card component already handles damage calculation in GetDamage()
+                
+                Debug.Log($"Launched card ({type}) in direction {direction} with effective damage {actualDamage}, shouldSplit: {shouldSplit}, hasLifesteal: {vampireHealPercent}");
             }
             else
             {
-                Debug.LogError("Card sprite or renderer missing!");
+                Debug.LogError("Card component missing DamageSource!");
             }
-            
-            // Then initialize with correct stats and collision sounds
-            card.Initialize(cardType, stats, effectPrefab, cardColor, cardCollisionSounds);
-            
-            // Launch the card AFTER initialization
-            card.Launch(direction);
-            
-            // Verify card is set up correctly
-            Debug.Log($"Card launched with direction {direction}");
         }
         else
         {
             Debug.LogError("Card component missing from prefab!");
+            Destroy(cardObject); // Clean up useless object
         }
+    }
+    
+    // Helper method to play throw sound
+    private void PlayThrowSound()
+    {
+        if (audioSource != null && cardShootSounds != null && cardShootSounds.Length > 0)
+        {
+            AudioClip soundToPlay = null;
+            int attempts = 0;
+            while (soundToPlay == null && attempts < cardShootSounds.Length * 2) // Prevent infinite loop
+            {
+                int randomIndex = Random.Range(0, cardShootSounds.Length);
+                soundToPlay = cardShootSounds[randomIndex];
+                attempts++;
+            }
+
+            if (soundToPlay != null)
+            {
+                audioSource.volume = 6.0f; // Keep the EXTREME volume
+                audioSource.PlayOneShot(soundToPlay, 6.0f);
+                Debug.Log($"Playing card throw sound: {soundToPlay.name} at EXTREME volume 6.0");
+                StartCoroutine(ResetVolumeAfterSound());
+            }
+            else
+            {
+                Debug.LogWarning("Could not find a non-null card shoot sound to play!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("AudioSource or card shoot sounds missing!");
+        }
+    }
+    
+    // Helper function to rotate a vector
+    private Vector2 RotateVector(Vector2 v, float degrees)
+    {
+        float radians = degrees * Mathf.Deg2Rad;
+        float sin = Mathf.Sin(radians);
+        float cos = Mathf.Cos(radians);
+        
+        float tx = v.x;
+        float ty = v.y;
+        
+        return new Vector2(cos * tx - sin * ty, sin * tx + cos * ty);
     }
     
     private IEnumerator ThrowCooldown()
@@ -362,7 +451,7 @@ public class CardThrower : MonoBehaviour
     private IEnumerator ResetVolumeAfterSound()
     {
         yield return null; // Wait one frame
-        audioSource.volume = 1.0f; // Reset to normal volume
+        audioSource.volume = 1.0f; // Reset to default volume
     }
     
     // Apply upgrades
@@ -421,14 +510,106 @@ public class CardThrower : MonoBehaviour
         }
     }
     
-    // Getters for upgrade status
+    // Apply upgrade methods for fan shot for each card type
+    public void ApplyRedFanShotUpgrade()
+    {
+        if (!redFanShotUpgrade)
+        {
+            redFanShotUpgrade = true;
+            Debug.Log("Red Fan Shot upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Red Fan Shot upgrade already applied!");
+        }
+    }
+    
+    public void ApplyBlueFanShotUpgrade()
+    {
+        if (!blueFanShotUpgrade)
+        {
+            blueFanShotUpgrade = true;
+            Debug.Log("Blue Fan Shot upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Blue Fan Shot upgrade already applied!");
+        }
+    }
+    
+    public void ApplyGreenFanShotUpgrade()
+    {
+        if (!greenFanShotUpgrade)
+        {
+            greenFanShotUpgrade = true;
+            Debug.Log("Green Fan Shot upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Green Fan Shot upgrade already applied!");
+        }
+    }
+    
+    // Apply vampire upgrade
+    public void ApplyRedVampireUpgrade()
+    {
+        if (!redVampireUpgrade)
+        {
+            redVampireUpgrade = true;
+            Debug.Log("Red Vampire upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Red Vampire upgrade already applied!");
+        }
+    }
+    
+    public void ApplyBlueVampireUpgrade()
+    {
+        if (!blueVampireUpgrade)
+        {
+            blueVampireUpgrade = true;
+            Debug.Log("Blue Vampire upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Blue Vampire upgrade already applied!");
+        }
+    }
+    
+    public void ApplyGreenVampireUpgrade()
+    {
+        if (!greenVampireUpgrade)
+        {
+            greenVampireUpgrade = true;
+            Debug.Log("Green Vampire upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Green Vampire upgrade already applied!");
+        }
+    }
+    
+    // Getters for upgrade status including the new fan shot upgrades
     public bool HasGreenAreaUpgrade() { return greenCardAreaUpgrade; }
     public bool HasBlueStunUpgrade() { return blueCardStunUpgrade; }
     public bool HasRedPoisonUpgrade() { return redCardPoisonUpgrade; }
+    public bool HasRedFanShotUpgrade() { return redFanShotUpgrade; }
+    public bool HasBlueFanShotUpgrade() { return blueFanShotUpgrade; }
+    public bool HasGreenFanShotUpgrade() { return greenFanShotUpgrade; }
+    public bool HasRedVampireUpgrade() { return redVampireUpgrade; }
+    public bool HasBlueVampireUpgrade() { return blueVampireUpgrade; }
+    public bool HasGreenVampireUpgrade() { return greenVampireUpgrade; }
     
     // Getters for upgrade parameters
     public float GetGreenAreaIncreaseAmount() { return greenAreaIncreaseAmount; }
     public float GetBlueStunDuration() { return blueStunDuration; }
     public float GetRedPoisonDuration() { return redPoisonDuration; }
     public float GetRedPoisonDamagePerSecond() { return redPoisonDamagePerSecond; }
+    public float GetFanShotAngleSpread() { return fanShotAngleSpread; }
+    public float GetFanShotDamageMultiplier() { return fanShotDamageMultiplier; }
+    public float GetVampireHealPercent() { return vampireHealPercent; }
+    
+    // Getter for card prefab (needed for splitting cards)
+    public GameObject GetCardPrefab() { return cardPrefab; }
 } 

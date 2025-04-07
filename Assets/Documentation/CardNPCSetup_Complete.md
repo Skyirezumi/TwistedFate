@@ -243,7 +243,19 @@ Add this script to a GameObject in your scene.
 6. Press E to interact
 7. You should see the dialogue text appear with talking sounds
 8. After the dialogue timer, the upgrade UI should appear
-9. Select an upgrade to purchase it
+9. Select an upgrade (including the new Fan Shot) to purchase it
+10. Test the upgraded card throws:
+    - Green cards should have a larger explosion
+    - Blue cards should stun enemies
+    - Red cards should apply poison
+    - If Fan Shot is purchased, throwing cards should launch a spread of 3 projectiles
+
+## Upgrade Types
+
+- **GreenAreaOfEffect**: Increases explosion radius for green cards.
+- **BlueStun**: Adds a stun effect to blue cards.
+- **RedPoison**: Adds a damage-over-time poison effect to red cards.
+- **FanShot**: Throws three cards in a fan instead of one, each dealing slightly less damage.
 
 ## Troubleshooting
 
