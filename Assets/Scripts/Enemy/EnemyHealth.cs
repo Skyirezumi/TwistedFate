@@ -1,9 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System; // Add for Action/event support
 
 public class EnemyHealth : MonoBehaviour
 {
+    // Event that will be triggered when the enemy dies
+    public event Action OnDeath;
+    
     [SerializeField] private int startingHealth = 3;
     [SerializeField] private GameObject deathVFXPrefab;
     [SerializeField] private float knockBackThrust = 15f;
@@ -37,6 +41,9 @@ public class EnemyHealth : MonoBehaviour
 
     public void DetectDeath() {
         if (currentHealth <= 0) {
+            // Trigger the death event before destroying the object
+            OnDeath?.Invoke();
+            
             Instantiate(deathVFXPrefab, transform.position, Quaternion.identity);
             GetComponent<PickUpSpawner>().DropItems();
             Destroy(gameObject);

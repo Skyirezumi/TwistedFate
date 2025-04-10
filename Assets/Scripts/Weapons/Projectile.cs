@@ -35,6 +35,11 @@ public class Projectile : MonoBehaviour
     }
 
     private void OnTriggerEnter2D(Collider2D other) {
+        // Skip collisions with player cards (Card component indicates it's a player card)
+        if (isEnemyProjectile && other.GetComponent<Card>() != null) {
+            return;
+        }
+        
         EnemyHealth enemyHealth = other.gameObject.GetComponent<EnemyHealth>();
         Indestructible indestructible = other.gameObject.GetComponent<Indestructible>();
         PlayerHealth player = other.gameObject.GetComponent<PlayerHealth>();

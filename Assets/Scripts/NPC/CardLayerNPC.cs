@@ -202,6 +202,88 @@ public class CardLayerNPC : MonoBehaviour
             new CardUpgrade(CardUpgradeType.GreenChainLightning, "Green Chain Lightning", "Green cards damage nearby enemies for 60% of the original damage")
         };
         
+        // Filter out upgrades that the player already has
+        CardThrower cardThrower = FindCardThrower();
+        if (cardThrower != null)
+        {
+            // Create a new filtered list
+            List<CardUpgrade> availableUpgrades = new List<CardUpgrade>();
+            
+            foreach (CardUpgrade upgrade in allUpgrades)
+            {
+                bool alreadyHasUpgrade = false;
+                
+                // Check each upgrade type against player's existing upgrades
+                switch (upgrade.type)
+                {
+                    case CardUpgradeType.GreenAreaOfEffect:
+                        alreadyHasUpgrade = cardThrower.HasGreenAreaUpgrade();
+                        break;
+                    case CardUpgradeType.BlueStun:
+                        alreadyHasUpgrade = cardThrower.HasBlueStunUpgrade();
+                        break;
+                    case CardUpgradeType.RedPoison:
+                        alreadyHasUpgrade = cardThrower.HasRedPoisonUpgrade();
+                        break;
+                    case CardUpgradeType.RedFanShot:
+                        alreadyHasUpgrade = cardThrower.HasRedFanShotUpgrade();
+                        break;
+                    case CardUpgradeType.BlueFanShot:
+                        alreadyHasUpgrade = cardThrower.HasBlueFanShotUpgrade();
+                        break;
+                    case CardUpgradeType.GreenFanShot:
+                        alreadyHasUpgrade = cardThrower.HasGreenFanShotUpgrade();
+                        break;
+                    case CardUpgradeType.RedVampire:
+                        alreadyHasUpgrade = cardThrower.HasRedVampireUpgrade();
+                        break;
+                    case CardUpgradeType.BlueVampire:
+                        alreadyHasUpgrade = cardThrower.HasBlueVampireUpgrade();
+                        break;
+                    case CardUpgradeType.GreenVampire:
+                        alreadyHasUpgrade = cardThrower.HasGreenVampireUpgrade();
+                        break;
+                    case CardUpgradeType.RedHomingPrecision:
+                        alreadyHasUpgrade = cardThrower.HasRedHomingPrecisionUpgrade();
+                        break;
+                    case CardUpgradeType.BlueHomingPrecision:
+                        alreadyHasUpgrade = cardThrower.HasBlueHomingPrecisionUpgrade();
+                        break;
+                    case CardUpgradeType.GreenHomingPrecision:
+                        alreadyHasUpgrade = cardThrower.HasGreenHomingPrecisionUpgrade();
+                        break;
+                    case CardUpgradeType.RedChainLightning:
+                        alreadyHasUpgrade = cardThrower.HasRedChainLightningUpgrade();
+                        break;
+                    case CardUpgradeType.BlueChainLightning:
+                        alreadyHasUpgrade = cardThrower.HasBlueChainLightningUpgrade();
+                        break;
+                    case CardUpgradeType.GreenChainLightning:
+                        alreadyHasUpgrade = cardThrower.HasGreenChainLightningUpgrade();
+                        break;
+                }
+                
+                // Only add upgrades that the player doesn't already have
+                if (!alreadyHasUpgrade)
+                {
+                    availableUpgrades.Add(upgrade);
+                }
+            }
+            
+            // Use the filtered list instead of the original
+            allUpgrades = availableUpgrades;
+        }
+        
+        // Check if we have enough upgrades left
+        if (allUpgrades.Count == 0)
+        {
+            Debug.Log("Player has all available upgrades! Creating a default 'no upgrades available' option.");
+            // Return a single "no upgrades available" option
+            return new CardUpgrade[] { 
+                new CardUpgrade(CardUpgradeType.GreenAreaOfEffect, "No Upgrades Available", "You have already unlocked all available upgrades!")
+            };
+        }
+        
         // Shuffle the list
         for (int i = 0; i < allUpgrades.Count; i++)
         {
@@ -221,6 +303,22 @@ public class CardLayerNPC : MonoBehaviour
         }
         
         return selectedUpgrades;
+    }
+    
+    private CardThrower FindCardThrower()
+    {
+        // First try to find in player
+        if (PlayerController.Instance != null)
+        {
+            CardThrower cardThrower = PlayerController.Instance.GetComponent<CardThrower>();
+            if (cardThrower != null)
+            {
+                return cardThrower;
+            }
+        }
+        
+        // As a fallback, try to find in scene
+        return FindObjectOfType<CardThrower>();
     }
     
     private void PlayInteractionSound()

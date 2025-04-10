@@ -404,10 +404,17 @@ public class Card : MonoBehaviour
     // Reset collision handling to a simpler approach that's guaranteed to work
     protected virtual void OnTriggerEnter2D(Collider2D other)
     {
-        // Skip collisions with other cards - use GetComponent instead of tag
+        // Skip collisions with other cards, player, or parent
         if (other.GetComponent<Card>() != null || 
             other.gameObject.GetComponent<PlayerController>() != null || 
             other.transform == transform.parent)
+        {
+            return;
+        }
+        
+        // Skip collisions with enemy projectiles
+        Projectile enemyProjectile = other.GetComponent<Projectile>();
+        if (enemyProjectile != null && enemyProjectile.GetIsEnemyProjectile())
         {
             return;
         }
