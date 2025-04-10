@@ -10,7 +10,13 @@ public enum CardUpgradeType
     GreenFanShot,  // Add green fan shot
     RedVampire,    // Red cards heal on hit
     BlueVampire,   // Blue cards heal on hit
-    GreenVampire   // Green cards heal on hit
+    GreenVampire,   // Green cards heal on hit
+    RedHomingPrecision,    // Red cards track targets
+    BlueHomingPrecision,   // Blue cards track targets
+    GreenHomingPrecision,   // Green cards track targets
+    RedChainLightning,     // Red cards chain to nearby enemies
+    BlueChainLightning,    // Blue cards chain to nearby enemies
+    GreenChainLightning    // Green cards chain to nearby enemies
 }
 
 // Add the CardUpgrade class definition here

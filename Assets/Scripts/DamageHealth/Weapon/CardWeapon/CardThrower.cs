@@ -48,6 +48,12 @@ public class CardThrower : MonoBehaviour
     [SerializeField] private bool redVampireUpgrade = false; // Red vampire upgrade
     [SerializeField] private bool blueVampireUpgrade = false; // Blue vampire upgrade
     [SerializeField] private bool greenVampireUpgrade = false; // Green vampire upgrade
+    [SerializeField] private bool redHomingPrecisionUpgrade = false; // Red homing precision
+    [SerializeField] private bool blueHomingPrecisionUpgrade = false; // Blue homing precision
+    [SerializeField] private bool greenHomingPrecisionUpgrade = false; // Green homing precision
+    [SerializeField] private bool redChainLightningUpgrade = false; // Red chain lightning
+    [SerializeField] private bool blueChainLightningUpgrade = false; // Blue chain lightning
+    [SerializeField] private bool greenChainLightningUpgrade = false; // Green chain lightning
     [SerializeField] private float greenAreaIncreaseAmount = 1.5f;
     [SerializeField] private float blueStunDuration = 1.0f;
     [SerializeField] private float redPoisonDuration = 3.0f;
@@ -55,6 +61,10 @@ public class CardThrower : MonoBehaviour
     [SerializeField] private float fanShotAngleSpread = 15f; // Angle between fan cards
     [SerializeField] private float fanShotDamageMultiplier = 0.7f; // Damage reduction for each fan card
     [SerializeField] private float vampireHealPercent = 0.2f; // Vampire heals 20% of damage
+    [SerializeField] private float homingStrength = 0.1f; // How strongly cards track targets
+    [SerializeField] private float homingRange = 5f; // Range at which cards start tracking
+    [SerializeField] private float chainLightningRange = 4f; // Range for chain lightning effect
+    [SerializeField] private float chainLightningDamageMultiplier = 0.6f; // Damage multiplier for chain lightning
     
     private bool canThrow = true;
     private bool canSwitchCardType = true;
@@ -243,55 +253,88 @@ public class CardThrower : MonoBehaviour
             // Direction should be normalized to ensure consistent speed
             Vector2 normalizedDirection = direction.normalized;
             
-            // Pass the effect prefab and color, and set the shouldSplit flag for fan shot
-            // Also pass vampire upgrade status
+            // Check for collision sounds to pass in
+            bool hasCollisionSounds = (cardCollisionSounds != null && cardCollisionSounds.Length > 0);
+            
+            // Check if we have homing precision for this card type
+            bool hasHoming = false;
+            float homingStrengthToUse = this.homingStrength;
+            float homingRangeToUse = this.homingRange;
+            
+            if (type == Card.CardType.Red && redHomingPrecisionUpgrade)
+            {
+                hasHoming = true;
+                Debug.Log("<color=red>RED homing precision upgrade active!</color>");
+            }
+            else if (type == Card.CardType.Blue && blueHomingPrecisionUpgrade)
+            {
+                hasHoming = true;
+                Debug.Log("<color=blue>BLUE homing precision upgrade active!</color>");
+            }
+            else if (type == Card.CardType.Green && greenHomingPrecisionUpgrade)
+            {
+                hasHoming = true;
+                Debug.Log("<color=green>GREEN homing precision upgrade active!</color>");
+            }
+            
+            // Check if we have chain lightning for this card type
+            bool hasChainLightning = false;
+            float chainRange = chainLightningRange;
+            float chainDamageMultiplier = chainLightningDamageMultiplier;
+            
+            if (type == Card.CardType.Red && redChainLightningUpgrade)
+            {
+                hasChainLightning = true;
+                Debug.Log("<color=red>RED chain lightning upgrade active!</color>");
+            }
+            else if (type == Card.CardType.Blue && blueChainLightningUpgrade)
+            {
+                hasChainLightning = true;
+                Debug.Log("<color=blue>BLUE chain lightning upgrade active!</color>");
+            }
+            else if (type == Card.CardType.Green && greenChainLightningUpgrade)
+            {
+                hasChainLightning = true;
+                Debug.Log("<color=green>GREEN chain lightning upgrade active!</color>");
+            }
+            
+            // Check if green area upgrade is active (only for green cards)
+            float effectiveRadius = 1.0f;
+            if (type == Card.CardType.Green && greenCardAreaUpgrade)
+            {
+                effectiveRadius = greenAreaIncreaseAmount;
+                Debug.Log($"<color=green>GREEN area upgrade active!</color> New radius: {effectiveRadius}");
+            }
+            
+            // Initialize with all our settings
             card.Initialize(
                 type, 
                 baseStats, 
                 effect, 
                 color, 
-                cardCollisionSounds, 
-                damageMultiplier, 
-                shouldSplit, 
-                fanShotAngleSpread, 
+                hasCollisionSounds ? cardCollisionSounds : null,
+                damageMultiplier,
+                shouldSplit,
+                fanShotAngleSpread,
                 fanShotDamageMultiplier,
                 hasVampire,
-                vampireHealPercent
+                vampireHealPercent,
+                hasHoming,
+                homingStrengthToUse,
+                homingRangeToUse,
+                hasChainLightning,
+                chainRange,
+                chainDamageMultiplier
             );
             
             // Launch in the calculated direction
             card.Launch(normalizedDirection);
             
-            // Set damage amount (a bit redundant since Card.GetDamage() now uses stats.damage)
-            DamageSource damageSource = cardObject.GetComponent<DamageSource>();
-            if (damageSource != null)
-            {
-                int actualDamage;
-                float damageModifier = 1.0f;
-                
-                // Apply damage multiplier if needed (for charge shots or fan shots)
-                if (damageMultiplier != 1.0f)
-                {
-                    damageModifier = damageMultiplier;
-                }
-                
-                // Use baseValue from stats and apply modifier
-                actualDamage = Mathf.RoundToInt(baseStats.damage.baseValue * damageModifier);
-                
-                // Don't try to set damageAmount directly since it's protected
-                // The Card component already handles damage calculation in GetDamage()
-                
-                Debug.Log($"Launched card ({type}) in direction {direction} with effective damage {actualDamage}, shouldSplit: {shouldSplit}, hasLifesteal: {vampireHealPercent}");
-            }
-            else
-            {
-                Debug.LogError("Card component missing DamageSource!");
-            }
+            Debug.Log($"Launched {type} card with damage: {baseStats.damage.GetValue()}, direction: {normalizedDirection}");
         }
         else
         {
-            Debug.LogError("Card component missing from prefab!");
-            Destroy(cardObject); // Clean up useless object
+            Debug.LogError("Card component missing from card prefab!");
         }
     }
     
@@ -590,6 +633,64 @@ public class CardThrower : MonoBehaviour
         }
     }
     
+    public void ApplyRedHomingPrecisionUpgrade()
+    {
+        redHomingPrecisionUpgrade = true;
+        Debug.Log("Applied Red Homing Precision upgrade");
+    }
+    
+    public void ApplyBlueHomingPrecisionUpgrade()
+    {
+        blueHomingPrecisionUpgrade = true;
+        Debug.Log("Applied Blue Homing Precision upgrade");
+    }
+    
+    public void ApplyGreenHomingPrecisionUpgrade()
+    {
+        greenHomingPrecisionUpgrade = true;
+        Debug.Log("Applied Green Homing Precision upgrade");
+    }
+    
+    // Chain Lightning upgrade methods
+    public void ApplyRedChainLightningUpgrade()
+    {
+        if (!redChainLightningUpgrade)
+        {
+            redChainLightningUpgrade = true;
+            Debug.Log("Red Chain Lightning upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Red Chain Lightning upgrade already applied!");
+        }
+    }
+    
+    public void ApplyBlueChainLightningUpgrade()
+    {
+        if (!blueChainLightningUpgrade)
+        {
+            blueChainLightningUpgrade = true;
+            Debug.Log("Blue Chain Lightning upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Blue Chain Lightning upgrade already applied!");
+        }
+    }
+    
+    public void ApplyGreenChainLightningUpgrade()
+    {
+        if (!greenChainLightningUpgrade)
+        {
+            greenChainLightningUpgrade = true;
+            Debug.Log("Green Chain Lightning upgrade applied!");
+        }
+        else
+        {
+            Debug.Log("Green Chain Lightning upgrade already applied!");
+        }
+    }
+    
     // Getters for upgrade status including the new fan shot upgrades
     public bool HasGreenAreaUpgrade() { return greenCardAreaUpgrade; }
     public bool HasBlueStunUpgrade() { return blueCardStunUpgrade; }
@@ -600,6 +701,12 @@ public class CardThrower : MonoBehaviour
     public bool HasRedVampireUpgrade() { return redVampireUpgrade; }
     public bool HasBlueVampireUpgrade() { return blueVampireUpgrade; }
     public bool HasGreenVampireUpgrade() { return greenVampireUpgrade; }
+    public bool HasRedHomingPrecisionUpgrade() { return redHomingPrecisionUpgrade; }
+    public bool HasBlueHomingPrecisionUpgrade() { return blueHomingPrecisionUpgrade; }
+    public bool HasGreenHomingPrecisionUpgrade() { return greenHomingPrecisionUpgrade; }
+    public bool HasRedChainLightningUpgrade() { return redChainLightningUpgrade; }
+    public bool HasBlueChainLightningUpgrade() { return blueChainLightningUpgrade; }
+    public bool HasGreenChainLightningUpgrade() { return greenChainLightningUpgrade; }
     
     // Getters for upgrade parameters
     public float GetGreenAreaIncreaseAmount() { return greenAreaIncreaseAmount; }
@@ -609,6 +716,10 @@ public class CardThrower : MonoBehaviour
     public float GetFanShotAngleSpread() { return fanShotAngleSpread; }
     public float GetFanShotDamageMultiplier() { return fanShotDamageMultiplier; }
     public float GetVampireHealPercent() { return vampireHealPercent; }
+    public float GetHomingStrength() { return homingStrength; }
+    public float GetHomingRange() { return homingRange; }
+    public float GetChainLightningRange() { return chainLightningRange; }
+    public float GetChainLightningDamageMultiplier() { return chainLightningDamageMultiplier; }
     
     // Getter for card prefab (needed for splitting cards)
     public GameObject GetCardPrefab() { return cardPrefab; }

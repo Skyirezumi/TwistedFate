@@ -11,10 +11,12 @@ public class EnemyHealth : MonoBehaviour
     private int currentHealth;
     private Knockback knockback;
     private Flash flash;
+    private float originalKnockbackThrust; // Store original knockback value
 
     private void Awake() {
         flash = GetComponent<Flash>();
         knockback = GetComponent<Knockback>();
+        originalKnockbackThrust = knockBackThrust; // Store original value
     }
 
     private void Start() {
@@ -39,5 +41,17 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<PickUpSpawner>().DropItems();
             Destroy(gameObject);
         }
+    }
+    
+    // Add method to temporarily set knockback thrust
+    public void SetKnockbackThrust(float newThrust)
+    {
+        knockBackThrust = newThrust;
+    }
+    
+    // Add method to reset knockback thrust to original value
+    public void ResetKnockbackThrust()
+    {
+        knockBackThrust = originalKnockbackThrust;
     }
 }

@@ -180,7 +180,13 @@ public class CardLayerNPC : MonoBehaviour
             new CardUpgrade(CardUpgradeType.GreenFanShot, "Green Fan Shot", "Green cards split into 3 projectiles at half distance"),
             new CardUpgrade(CardUpgradeType.RedVampire, "Red Vampire", "Red cards heal you for 20% of damage dealt"),
             new CardUpgrade(CardUpgradeType.BlueVampire, "Blue Vampire", "Blue cards heal you for 20% of damage dealt"),
-            new CardUpgrade(CardUpgradeType.GreenVampire, "Green Vampire", "Green cards heal you for 20% of damage dealt")
+            new CardUpgrade(CardUpgradeType.GreenVampire, "Green Vampire", "Green cards heal you for 20% of damage dealt"),
+            new CardUpgrade(CardUpgradeType.RedHomingPrecision, "Red Homing Precision", "Red cards slightly track moving targets"),
+            new CardUpgrade(CardUpgradeType.BlueHomingPrecision, "Blue Homing Precision", "Blue cards slightly track moving targets"),
+            new CardUpgrade(CardUpgradeType.GreenHomingPrecision, "Green Homing Precision", "Green cards slightly track moving targets"),
+            new CardUpgrade(CardUpgradeType.RedChainLightning, "Red Chain Lightning", "Red cards damage nearby enemies for 60% of the original damage"),
+            new CardUpgrade(CardUpgradeType.BlueChainLightning, "Blue Chain Lightning", "Blue cards damage nearby enemies for 60% of the original damage"),
+            new CardUpgrade(CardUpgradeType.GreenChainLightning, "Green Chain Lightning", "Green cards damage nearby enemies for 60% of the original damage")
         };
         
         // Shuffle the list

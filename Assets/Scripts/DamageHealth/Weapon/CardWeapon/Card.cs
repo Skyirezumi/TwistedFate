@@ -40,10 +40,19 @@ public class Card : MonoBehaviour
     protected float vampireHealPercent = 0.2f; // Heal 20% of damage dealt
     [SerializeField] protected GameObject vampireEffectPrefab; // Assign in inspector or default one will be created
     
-    [SerializeField] protected bool useCollision = true;
-    
+    // Homing precision properties
+    protected bool hasHoming = false;
+    protected float homingStrength = 0.05f; // Reduced from 0.1f to 0.05f for very subtle tracking
+    protected float homingRange = 5f;
     protected Transform currentTarget;
     protected bool isCriticalHit = false;
+    
+    // Chain lightning properties
+    protected bool hasChainLightning = false;
+    protected float chainLightningRange = 4f;
+    protected float chainLightningDamageMultiplier = 0.6f;
+    
+    [SerializeField] protected bool useCollision = true;
     
     protected virtual void Awake()
     {
@@ -64,7 +73,7 @@ public class Card : MonoBehaviour
         }
     }
     
-    public void Initialize(CardType type, CardStats cardStats, GameObject impactEffect, Color color, AudioClip[] cardCollisionSounds = null, float damageModifier = 1f, bool shouldSplit = false, float splitAngle = 15f, float splitDamageMultiplier = 0.7f, bool hasVampire = false, float vampireHealPercent = 0.2f)
+    public void Initialize(CardType type, CardStats cardStats, GameObject impactEffect, Color color, AudioClip[] cardCollisionSounds = null, float damageModifier = 1f, bool shouldSplit = false, float splitAngle = 15f, float splitDamageMultiplier = 0.7f, bool hasVampire = false, float vampireHealPercent = 0.2f, bool hasHoming = false, float homingStrength = 0.05f, float homingRange = 5f, bool hasChainLightning = false, float chainLightningRange = 4f, float chainLightningDamageMultiplier = 0.6f)
     {
         cardType = type;
         stats = cardStats;
@@ -84,11 +93,21 @@ public class Card : MonoBehaviour
         this.hasVampire = hasVampire;
         this.vampireHealPercent = vampireHealPercent;
         
+        // Initialize homing precision
+        this.hasHoming = hasHoming;
+        this.homingStrength = homingStrength;
+        this.homingRange = homingRange;
+        
+        // Initialize chain lightning
+        this.hasChainLightning = hasChainLightning;
+        this.chainLightningRange = chainLightningRange;
+        this.chainLightningDamageMultiplier = chainLightningDamageMultiplier;
+        
         // Apply color to sprite
         if (spriteRenderer != null)
         {
             spriteRenderer.color = cardColor;
-            Debug.Log($"Initialized card of type {type} with color {color}, damage modifier: {damageModifier}, shouldSplit: {shouldSplit}, hasVampire: {hasVampire}");
+            Debug.Log($"Initialized card of type {type} with color {color}, damage modifier: {damageModifier}, shouldSplit: {shouldSplit}, hasVampire: {hasVampire}, hasHoming: {hasHoming}, hasChainLightning: {hasChainLightning}");
         }
         else
         {
@@ -116,6 +135,12 @@ public class Card : MonoBehaviour
         {
             Debug.Log($"<color=yellow>Card {cardType} will split in {splitTime} seconds</color>");
         }
+        
+        // Find initial target if homing is enabled
+        if (hasHoming)
+        {
+            FindNearestTarget();
+        }
     }
     
     protected virtual void Update()
@@ -134,8 +159,8 @@ public class Card : MonoBehaviour
             direction = Vector2.up;
         }
         
-        // Apply homing if stat is greater than 0
-        if (stats.homingStrength.GetValue() > 0f)
+        // Apply homing if enabled
+        if (hasHoming)
         {
             ApplyHoming();
         }
@@ -310,7 +335,10 @@ public class Card : MonoBehaviour
             splitAngle,
             splitDamageMultiplier,
             hasVampire, // Pass vampire flag to split cards
-            vampireHealPercent // Pass vampire heal percent to split cards
+            vampireHealPercent, // Pass vampire heal percent to split cards
+            hasHoming,
+            homingStrength,
+            homingRange
         );
         
         // Launch in the direction
@@ -425,8 +453,20 @@ public class Card : MonoBehaviour
         // Play collision sound
         PlayCollisionSound();
         
-        // Apply special effect based on card type
+        // Apply card special effect based on type
         ApplySpecialEffect(target);
+        
+        // Check if we have vampire effect
+        if (hasVampire)
+        {
+            // Get damage value
+            int damageValue = GetDamage();
+            
+            // Apply vampire healing
+            ApplyVampire(transform.position, damageValue);
+        }
+        
+        // Destroy the card
         Destroy(gameObject);
     }
     
@@ -447,6 +487,9 @@ public class Card : MonoBehaviour
         // Get values from stats
         float radius = stats.explosionRadius.GetValue();
         int damage = GetDamage();
+        
+        // Log hit details
+        Debug.Log($"Card {cardType} applying special effect to {target.name} with damage: {damage}, radius: {radius}, hasChainLightning: {hasChainLightning}");
         
         // Apply card type specific effects
         switch (cardType)
@@ -501,12 +544,26 @@ public class Card : MonoBehaviour
                 cardThrower.GetRedPoisonDamagePerSecond(), 
                 cardThrower.GetRedPoisonDuration());
         }
+        
+        // Apply chain lightning if upgrade is active
+        if (hasChainLightning)
+        {
+            Debug.Log($"Applying chain lightning from Red card to {target.name}");
+            ApplyChainLightning(transform.position, target, damage);
+        }
     }
     
     protected virtual void ApplyGreenCardEffect(GameObject target, float radius, int damage)
     {
         // Green card - larger area damage (radius already affected by upgrade in CardThrower)
         ApplyDamageInRadius(transform.position, radius, damage);
+        
+        // Apply chain lightning if upgrade is active
+        if (hasChainLightning)
+        {
+            Debug.Log($"Applying chain lightning from Green card to {target.name}");
+            ApplyChainLightning(transform.position, target, damage);
+        }
     }
     
     protected virtual void ApplyBlueCardEffect(GameObject target, float radius, int damage)
@@ -520,6 +577,38 @@ public class Card : MonoBehaviour
         {
             // Apply stun to all targets in radius
             ApplyStunInRadius(transform.position, radius, cardThrower.GetBlueStunDuration());
+            
+            // Prevent knockback for stunned enemies
+            Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, radius);
+            foreach (Collider2D hitCollider in hitColliders)
+            {
+                EnemyHealth enemyHealth = hitCollider.GetComponent<EnemyHealth>();
+                if (enemyHealth != null)
+                {
+                    // Temporarily set knockback thrust to 0 for stunned enemies
+                    enemyHealth.SetKnockbackThrust(0f);
+                    StartCoroutine(ResetKnockbackAfterStun(enemyHealth));
+                }
+            }
+        }
+        
+        // Apply chain lightning if upgrade is active
+        if (hasChainLightning)
+        {
+            Debug.Log($"Applying chain lightning from Blue card to {target.name}");
+            ApplyChainLightning(transform.position, target, damage);
+        }
+    }
+    
+    private IEnumerator ResetKnockbackAfterStun(EnemyHealth enemyHealth)
+    {
+        // Wait for the stun duration
+        CardThrower cardThrower = FindCardThrower();
+        if (cardThrower != null)
+        {
+            yield return new WaitForSeconds(cardThrower.GetBlueStunDuration());
+            // Reset knockback thrust to default value
+            enemyHealth.ResetKnockbackThrust();
         }
     }
     
@@ -594,41 +683,64 @@ public class Card : MonoBehaviour
     
     protected virtual void ApplyHoming()
     {
-        // Find target if we don't have one
         if (currentTarget == null)
         {
+            // Try to find a new target
             FindNearestTarget();
+            return;
         }
         
-        if (currentTarget != null)
+        // Check if target is still in range
+        float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
+        if (distanceToTarget > homingRange)
         {
-            // Calculate direction to target
-            Vector2 directionToTarget = (currentTarget.position - transform.position).normalized;
-            
-            // Lerp our current direction toward target direction
-            float homingStrength = stats.homingStrength.GetValue() * Time.deltaTime;
-            direction = Vector2.Lerp(direction.normalized, directionToTarget, homingStrength);
-            
-            // Update rotation to match new direction (now accounting for Y-axis orientation)
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f;
-            transform.rotation = Quaternion.Euler(0, 0, angle);
+            currentTarget = null;
+            return;
         }
+        
+        // Calculate direction to target
+        Vector2 targetDirection = (currentTarget.position - transform.position).normalized;
+        
+        // Calculate angle between current direction and target
+        float angle = Vector2.SignedAngle(transform.up, targetDirection);
+        
+        // Only apply homing if the angle is small (card is already roughly aimed at target)
+        if (Mathf.Abs(angle) < 30f)
+        {
+            // Apply very subtle rotation based on homing strength
+            float rotation = angle * homingStrength;
+            
+            // Apply rotation
+            transform.Rotate(Vector3.forward, rotation);
+            
+            // Update movement direction to match new rotation
+            direction = transform.up;
+        }
+        
+        // Debug visualization
+        Debug.DrawRay(transform.position, targetDirection * 2f, Color.red);
+        Debug.DrawRay(transform.position, transform.up * 2f, Color.green);
     }
     
     protected virtual void FindNearestTarget()
     {
-        // Find all enemies within range
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 10f, LayerMask.GetMask("Enemy"));
+        // Find all enemies in range
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, homingRange);
         float closestDistance = float.MaxValue;
         Transform closestTarget = null;
         
-        foreach (Collider2D col in colliders)
+        foreach (Collider2D collider in colliders)
         {
-            float distance = Vector2.Distance(transform.position, col.transform.position);
-            if (distance < closestDistance)
+            // Check if it's an enemy by looking for EnemyHealth component
+            EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
             {
-                closestDistance = distance;
-                closestTarget = col.transform;
+                float distance = Vector2.Distance(transform.position, collider.transform.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestTarget = collider.transform;
+                }
             }
         }
         
@@ -1304,7 +1416,6 @@ public class Card : MonoBehaviour
                     tempSource.PlayOneShot(soundToPlay, 6.0f); // Double the previous volume (3.0 -> 6.0)
                     
                     Debug.Log($"Playing card collision sound: {soundToPlay.name} at EXTREME volume 6.0");
-                    
                     // Destroy the temporary object after the sound finishes
                     Destroy(tempAudio, soundToPlay.length + 0.1f);
                 }
@@ -1341,5 +1452,645 @@ public class Card : MonoBehaviour
     public void SetUseCollision(bool useCollision)
     {
         this.useCollision = useCollision;
+    }
+    
+    // Chain Lightning implementation
+    protected virtual void ApplyChainLightning(Vector2 position, GameObject primaryTarget, int baseDamage)
+    {
+        // Skip if no primary target or no chain lightning
+        if (primaryTarget == null || !hasChainLightning)
+        {
+            Debug.LogWarning("Cannot apply chain lightning: Primary target is null or chain lightning is disabled");
+            return;
+        }
+        
+        // Ensure primary target is an enemy
+        EnemyHealth primaryEnemyHealth = primaryTarget.GetComponent<EnemyHealth>();
+        if (primaryEnemyHealth == null)
+        {
+            Debug.LogWarning($"Chain lightning primary target {primaryTarget.name} is not an enemy (no EnemyHealth component)");
+            return;
+        }
+        
+        // The collision position (where the card hits) should be the origin of lightning
+        Vector2 collisionPoint = position;
+        
+        Debug.Log($"Applying chain lightning from collision point {collisionPoint} with 10m range and damage multiplier {chainLightningDamageMultiplier}");
+        
+        // Calculate chain lightning damage (60% of original by default)
+        int chainDamage = Mathf.RoundToInt(baseDamage * chainLightningDamageMultiplier);
+        
+        // DEBUG: Visual to show chain lightning range (10 meters)
+        float visualRange = 10f;
+        Debug.DrawRay(collisionPoint, Vector3.up * visualRange, Color.blue, 2.0f);
+        Debug.DrawRay(collisionPoint, Vector3.right * visualRange, Color.blue, 2.0f);
+        Debug.DrawRay(collisionPoint, Vector3.down * visualRange, Color.blue, 2.0f);
+        Debug.DrawRay(collisionPoint, Vector3.left * visualRange, Color.blue, 2.0f);
+        
+        // Find all enemies in range except the primary target
+        int hitCount = 0;
+        int totalChainDamage = 0;
+        
+        // Get all enemies in the scene and filter by range
+        EnemyHealth[] allEnemies = GameObject.FindObjectsOfType<EnemyHealth>();
+        Debug.Log($"Found {allEnemies.Length} enemies in the scene for chain lightning");
+        
+        // Create source glow effect at the collision point
+        CreateSourceGlowEffect(collisionPoint);
+        
+        // Create a smaller lightning explosion at the collision point
+        CreateMassiveLightningExplosion(collisionPoint, 0.8f);
+        
+        foreach (EnemyHealth enemyHealth in allEnemies)
+        {
+            // Skip the primary target
+            if (enemyHealth.gameObject == primaryTarget)
+            {
+                continue;
+            }
+            
+            // Check if enemy is within range
+            float distance = Vector2.Distance(collisionPoint, enemyHealth.transform.position);
+            if (distance > visualRange)
+            {
+                continue;
+            }
+            
+            // Apply damage directly to enemies in range
+            Debug.Log($"Applying chain lightning to secondary target: {enemyHealth.gameObject.name}");
+            
+            // Apply the chain damage directly
+            enemyHealth.TakeDamage(chainDamage);
+            hitCount++;
+            totalChainDamage += chainDamage;
+            
+            // Create lightning visual effect between collision point and secondary targets
+            CreateLightningEffect(collisionPoint, enemyHealth.transform.position);
+        }
+        
+        if (hitCount > 0)
+        {
+            Debug.Log($"Chain lightning hit {hitCount} enemies for {totalChainDamage} total damage");
+            
+            // Play chain lightning sound if available
+            PlayChainLightningSound();
+            
+            // Apply vampire if we have the upgrade and dealt damage
+            if (hasVampire && totalChainDamage > 0)
+            {
+                ApplyVampire(position, totalChainDamage);
+            }
+        }
+        else
+        {
+            Debug.Log("No secondary targets found for chain lightning");
+        }
+    }
+    
+    // Create a visual lightning effect between two points
+    protected virtual void CreateLightningEffect(Vector2 startPoint, Vector2 endPoint)
+    {
+        // Create lightning parent object
+        GameObject lightningEffect = new GameObject("LightningEffect");
+        lightningEffect.transform.position = startPoint;
+        
+        // Create a line renderer for the lightning
+        LineRenderer lightning = lightningEffect.AddComponent<LineRenderer>();
+        if (lightning == null)
+        {
+            Debug.LogError("Failed to add LineRenderer component");
+            Destroy(lightningEffect);
+            return;
+        }
+        
+        lightning.positionCount = 6; // Reduced segments for less jagged effect
+        
+        // Calculate the distance and direction
+        float distance = Vector2.Distance(startPoint, endPoint);
+        Vector2 direction = (endPoint - startPoint).normalized;
+        Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+        
+        // Set width based on distance - thinner for less intense look
+        float width = Mathf.Clamp(distance * 0.08f, 0.05f, 0.15f);
+        lightning.startWidth = width;
+        lightning.endWidth = width * 0.5f;
+        
+        // Set material and color based on card type
+        lightning.material = new Material(Shader.Find("Sprites/Default"));
+        
+        // Use a softer blue color
+        Color lightningColor = new Color(0.3f, 0.5f, 0.8f, 0.8f);
+        
+        // Add white core to the lightning
+        lightning.startColor = new Color(1f, 1f, 1f, 0.6f);
+        lightning.endColor = lightningColor;
+        
+        // Set positions to create a less jagged lightning bolt effect
+        lightning.SetPosition(0, startPoint);
+        lightning.SetPosition(lightning.positionCount - 1, endPoint);
+        
+        // Create intermediate points with less jitter
+        for (int i = 1; i < lightning.positionCount - 1; i++)
+        {
+            float t = (float)i / (lightning.positionCount - 1);
+            // Calculate base point along the line
+            Vector2 basePoint = Vector2.Lerp(startPoint, endPoint, t);
+            
+            // Add smaller random displacement perpendicular to the line
+            float jitter = Mathf.PerlinNoise(t * 5, Time.time) * distance * 0.08f - (distance * 0.04f);
+            Vector2 offset = perpendicular * jitter;
+            
+            // Set the position
+            lightning.SetPosition(i, basePoint + offset);
+        }
+        
+        // Set sorting layer to be above the game objects
+        lightning.sortingOrder = 10;
+        
+        // Add a subtle glow effect
+        try
+        {
+            LineRenderer glow = CreateGlowEffect(lightningEffect, lightning);
+            
+            // Add a fade-out script to the lightning effect
+            LightningFadeOut fadeOut = lightningEffect.AddComponent<LightningFadeOut>();
+            if (fadeOut != null)
+            {
+                fadeOut.Initialize(0.3f, lightning, glow); // Shorter duration for less visual clutter
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error creating glow effect: {e.Message}");
+            // Continue even if glow creation fails
+        }
+        
+        // Add subtle particles for less visual impact
+        try
+        {
+            AddLightningParticles(lightningEffect, startPoint, endPoint);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error adding particles: {e.Message}");
+            // Continue even if particle creation fails
+        }
+    }
+    
+    private LineRenderer CreateGlowEffect(GameObject parent, LineRenderer sourceLightning)
+    {
+        if (parent == null || sourceLightning == null)
+        {
+            Debug.LogError("Cannot create glow effect: parent or sourceLightning is null");
+            return null;
+        }
+
+        // Create a new GameObject for the glow
+        GameObject glowObject = new GameObject("LightningGlow");
+        glowObject.transform.SetParent(parent.transform);
+        glowObject.transform.localPosition = Vector3.zero;
+
+        // Add LineRenderer component
+        LineRenderer glow = null;
+        try
+        {
+            glow = glowObject.AddComponent<LineRenderer>();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Failed to add LineRenderer component: {e.Message}");
+            Destroy(glowObject);
+            return null;
+        }
+
+        if (glow == null)
+        {
+            Debug.LogError("LineRenderer component is null after creation");
+            Destroy(glowObject);
+            return null;
+        }
+
+        // Copy basic properties from source lightning
+        try
+        {
+            glow.positionCount = sourceLightning.positionCount;
+            glow.startWidth = sourceLightning.startWidth * 1.5f;
+            glow.endWidth = sourceLightning.endWidth * 1.5f;
+            glow.sortingOrder = sourceLightning.sortingOrder - 1;
+
+            // Set material and color
+            Material glowMaterial = new Material(Shader.Find("Sprites/Default"));
+            if (glowMaterial == null)
+            {
+                Debug.LogError("Failed to create glow material");
+                Destroy(glowObject);
+                return null;
+            }
+
+            glow.material = glowMaterial;
+            Color glowColor = new Color(0.4f, 0.6f, 0.9f, 0.2f); // More subtle glow
+            glow.startColor = glowColor;
+            glow.endColor = new Color(glowColor.r, glowColor.g, glowColor.b, 0.05f);
+
+            // Copy positions from the source lightning
+            Vector3[] positions = new Vector3[sourceLightning.positionCount];
+            sourceLightning.GetPositions(positions);
+            glow.SetPositions(positions);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error setting up glow properties: {e.Message}");
+            Destroy(glowObject);
+            return null;
+        }
+
+        return glow;
+    }
+    
+    private void AddLightningParticles(GameObject parent, Vector2 startPoint, Vector2 endPoint)
+    {
+        // Create a particle system for additional flair
+        GameObject particleObj = new GameObject("LightningParticles");
+        particleObj.transform.SetParent(parent.transform);
+        particleObj.transform.position = Vector2.Lerp(startPoint, endPoint, 0.5f);
+        
+        ParticleSystem particleSystem = particleObj.AddComponent<ParticleSystem>();
+        
+        // Configure particle system
+        var main = particleSystem.main;
+        main.startLifetime = 0.2f;
+        main.startSpeed = 0.5f;
+        main.startSize = 0.1f;
+        main.maxParticles = 50;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        
+        // Bright blue/white particles
+        main.startColor = new ParticleSystem.MinMaxGradient(Color.white, new Color(0.5f, 0.8f, 1f));
+        
+        // Emission settings
+        var emission = particleSystem.emission;
+        emission.rateOverTime = 30;
+        emission.SetBursts(new ParticleSystem.Burst[] { 
+            new ParticleSystem.Burst(0f, 20) 
+        });
+        
+        // Shape settings - use a box shape instead of Line (which doesn't exist in this Unity version)
+        var shape = particleSystem.shape;
+        shape.shapeType = ParticleSystemShapeType.Box;
+        
+        // Calculate direction and distance
+        Vector2 direction = endPoint - startPoint;
+        float distance = direction.magnitude;
+        
+        // Make a thin, long box aligned with the direction
+        shape.scale = new Vector3(distance, 0.1f, 0.1f);
+        
+        // Rotate to align with the direction from start to end point
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        shape.rotation = new Vector3(0, 0, angle);
+        
+        particleSystem.Play();
+    }
+    
+    // Create a glow effect at the source point
+    private void CreateSourceGlowEffect(Vector2 position)
+    {
+        // Create a sprite for the glow
+        GameObject glowObj = new GameObject("ChainLightningSourceGlow");
+        glowObj.transform.position = position;
+        
+        SpriteRenderer sprite = glowObj.AddComponent<SpriteRenderer>();
+        sprite.sprite = Resources.Load<Sprite>("Circle"); // Use a circle sprite or create one if needed
+        
+        if (sprite.sprite == null)
+        {
+            Debug.LogWarning("Circle sprite not found, creating a particle effect instead");
+            
+            // If no sprite is available, use particles instead
+            ParticleSystem particles = glowObj.AddComponent<ParticleSystem>();
+            var main = particles.main;
+            main.startLifetime = 0.4f;
+            main.startSpeed = 0.1f;
+            main.startSize = 0.5f;
+            main.startColor = new Color(0.5f, 0.8f, 1f, 0.7f);
+            
+            var emission = particles.emission;
+            emission.rateOverTime = 20;
+            
+            var shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.3f;
+            
+            particles.Play();
+            
+            // Auto-destroy the particle system
+            Destroy(glowObj, 0.4f);
+        }
+        else
+        {
+            // Configure the sprite
+            sprite.color = new Color(0.5f, 0.8f, 1f, 0.7f); // Light blue with transparency
+            sprite.sortingOrder = 5;
+            glowObj.transform.localScale = Vector3.one * 0.7f;
+            
+            // Add a fade out script
+            StartCoroutine(FadeOutGlow(glowObj, 0.4f));
+        }
+    }
+    
+    private IEnumerator FadeOutGlow(GameObject glowObj, float duration)
+    {
+        SpriteRenderer sprite = glowObj.GetComponent<SpriteRenderer>();
+        float elapsed = 0;
+        Color startColor = sprite.color;
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            sprite.color = new Color(startColor.r, startColor.g, startColor.b, 
+                Mathf.Lerp(startColor.a, 0, elapsed / duration));
+            
+            // Pulse the size
+            float scale = 0.7f + (0.3f * Mathf.Sin(elapsed * 15f));
+            glowObj.transform.localScale = Vector3.one * scale;
+            
+            yield return null;
+        }
+        
+        Destroy(glowObj);
+    }
+    
+    // Play chain lightning sound effect
+    protected virtual void PlayChainLightningSound()
+    {
+        // Use existing collision sounds for now
+        if (collisionSounds != null && collisionSounds.Length > 0)
+        {
+            AudioClip soundToPlay = null;
+            foreach (AudioClip clip in collisionSounds)
+            {
+                if (clip != null)
+                {
+                    soundToPlay = clip;
+                    break;
+                }
+            }
+            
+            if (soundToPlay != null)
+            {
+                // Create temporary audio source for the sound
+                GameObject tempAudio = new GameObject("ChainLightningSoundSource");
+                tempAudio.transform.position = transform.position;
+                AudioSource tempSource = tempAudio.AddComponent<AudioSource>();
+                tempSource.clip = soundToPlay;
+                tempSource.pitch = 1.5f; // Higher pitch for lightning sound
+                tempSource.spatialBlend = 1.0f;
+                tempSource.volume = 3.0f;
+                tempSource.PlayOneShot(soundToPlay, 3.0f);
+                
+                // Destroy after playing
+                Destroy(tempAudio, soundToPlay.length + 0.1f);
+            }
+        }
+    }
+    
+    // Implementation for CreateMassiveLightningExplosion (replacing any duplicates)
+    protected virtual void CreateMassiveLightningExplosion(Vector2 position, float radius)
+    {
+        // Create a particle system for a massive lightning explosion
+        GameObject explosionObj = new GameObject("MassiveLightningExplosion");
+        explosionObj.transform.position = position;
+        
+        // Add particle system
+        ParticleSystem particles = explosionObj.AddComponent<ParticleSystem>();
+        var main = particles.main;
+        main.startLifetime = 0.5f;
+        main.startSpeed = 3f;
+        main.startSize = 0.2f;
+        main.maxParticles = 100;
+        
+        // Set bright blue color
+        main.startColor = new ParticleSystem.MinMaxGradient(Color.white, new Color(0.5f, 0.8f, 1f));
+        
+        // Emission bursts
+        var emission = particles.emission;
+        emission.rateOverTime = 0;
+        emission.SetBursts(new ParticleSystem.Burst[] { 
+            new ParticleSystem.Burst(0f, 50) 
+        });
+        
+        // Shape - sphere
+        var shape = particles.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = radius * 0.5f;
+        
+        // Add light
+        Light light = explosionObj.AddComponent<Light>();
+        light.color = new Color(0.5f, 0.8f, 1f);
+        light.intensity = 3f;
+        light.range = radius * 2f;
+        
+        // Add fading script for the light
+        StartCoroutine(FadeExplosionLight(light, 0.5f));
+        
+        // Play and auto-destroy
+        particles.Play();
+        Destroy(explosionObj, 1.0f);
+    }
+    
+    // Implementation for CreatePersistentLightningConnection (replacing any duplicates)
+    protected virtual void CreatePersistentLightningConnection(Vector2 startPoint, Vector2 endPoint, float duration)
+    {
+        GameObject connectionObj = new GameObject("PersistentLightningConnection");
+        connectionObj.transform.position = startPoint;
+        
+        // Create line renderer
+        LineRenderer line = connectionObj.AddComponent<LineRenderer>();
+        line.positionCount = 8;
+        line.startWidth = 0.1f;
+        line.endWidth = 0.1f;
+        
+        // Set material and color
+        line.material = new Material(Shader.Find("Sprites/Default"));
+        line.startColor = Color.white;
+        line.endColor = new Color(0.5f, 0.8f, 1f);
+        
+        // Set positions with some jitter for lightning effect
+        Vector2 direction = (endPoint - startPoint).normalized;
+        Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+        float distance = Vector2.Distance(startPoint, endPoint);
+        
+        line.SetPosition(0, startPoint);
+        line.SetPosition(line.positionCount - 1, endPoint);
+        
+        for (int i = 1; i < line.positionCount - 1; i++)
+        {
+            float t = (float)i / (line.positionCount - 1);
+            Vector2 basePoint = Vector2.Lerp(startPoint, endPoint, t);
+            float jitter = Mathf.PerlinNoise(t * 10, Time.time) * distance * 0.1f;
+            Vector2 offset = perpendicular * jitter;
+            line.SetPosition(i, basePoint + offset);
+        }
+        
+        // Add jitter animation
+        StartCoroutine(AnimateLightningConnection(line, startPoint, endPoint, duration));
+        
+        // Auto-destroy
+        Destroy(connectionObj, duration + 0.1f);
+    }
+    
+    // Coroutine for lightning connection animation
+    private IEnumerator AnimateLightningConnection(LineRenderer line, Vector2 startPoint, Vector2 endPoint, float duration)
+    {
+        float elapsed = 0f;
+        Vector2 direction = (endPoint - startPoint).normalized;
+        Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+        float distance = Vector2.Distance(startPoint, endPoint);
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            
+            // Update all middle points with new jitter
+            for (int i = 1; i < line.positionCount - 1; i++)
+            {
+                float t = (float)i / (line.positionCount - 1);
+                Vector2 basePoint = Vector2.Lerp(startPoint, endPoint, t);
+                float jitter = Mathf.PerlinNoise(t * 10 + elapsed * 3, Time.time) * distance * 0.1f;
+                Vector2 offset = perpendicular * jitter;
+                line.SetPosition(i, basePoint + offset);
+            }
+            
+            yield return null;
+        }
+    }
+    
+    // Implementation for ContinuousSparkEffect (replacing any duplicates)
+    private IEnumerator ContinuousSparkEffect(Vector3 position, float duration)
+    {
+        GameObject sparkObj = new GameObject("ContinuousSpark");
+        sparkObj.transform.position = position;
+        
+        // Add particle system
+        ParticleSystem particles = sparkObj.AddComponent<ParticleSystem>();
+        var main = particles.main;
+        main.startLifetime = 0.2f;
+        main.startSpeed = 1f;
+        main.startSize = 0.1f;
+        main.maxParticles = 30;
+        
+        // Bright blue/white sparks
+        main.startColor = new ParticleSystem.MinMaxGradient(Color.white, new Color(0.5f, 0.8f, 1f));
+        
+        // Emission
+        var emission = particles.emission;
+        emission.rateOverTime = 20;
+        
+        // Shape
+        var shape = particles.shape;
+        shape.shapeType = ParticleSystemShapeType.Sphere;
+        shape.radius = 0.1f;
+        
+        // Start system
+        particles.Play();
+        
+        // Wait for duration
+        yield return new WaitForSeconds(duration);
+        
+        // Stop emission and wait for particles to die
+        var emissionModule = particles.emission;
+        emissionModule.enabled = false;
+        
+        yield return new WaitForSeconds(main.startLifetime.constant);
+        
+        // Destroy
+        Destroy(sparkObj);
+    }
+    
+    // Helper for fading explosion light
+    private IEnumerator FadeExplosionLight(Light light, float duration)
+    {
+        float initialIntensity = light.intensity;
+        float elapsed = 0f;
+        
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            light.intensity = Mathf.Lerp(initialIntensity, 0f, elapsed / duration);
+            yield return null;
+        }
+        
+        light.intensity = 0f;
+    }
+}
+
+// Helper class for lightning fade out
+public class LightningFadeOut : MonoBehaviour
+{
+    private float duration;
+    private float elapsed = 0;
+    private LineRenderer lightning;
+    private LineRenderer glow;
+    
+    public void Initialize(float duration, LineRenderer lightning, LineRenderer glow = null)
+    {
+        this.duration = duration;
+        this.lightning = lightning;
+        this.glow = glow;
+    }
+    
+    private void Update()
+    {
+        elapsed += Time.deltaTime;
+        
+        if (elapsed >= duration)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        // Fade out the lightning
+        if (lightning != null)
+        {
+            // Reduce alpha over time
+            float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+            lightning.startColor = new Color(lightning.startColor.r, lightning.startColor.g, lightning.startColor.b, alpha);
+            lightning.endColor = new Color(lightning.endColor.r, lightning.endColor.g, lightning.endColor.b, alpha);
+            
+            // Make the lightning jagged and dynamic by shifting points
+            if (lightning.positionCount > 2)
+            {
+                Vector3 start = lightning.GetPosition(0);
+                Vector3 end = lightning.GetPosition(lightning.positionCount - 1);
+                Vector3 dir = (end - start).normalized;
+                Vector3 perpendicular = new Vector3(-dir.y, dir.x, 0).normalized;
+                
+                for (int i = 1; i < lightning.positionCount - 1; i++)
+                {
+                    float t = (float)i / (lightning.positionCount - 1);
+                    Vector3 basePoint = Vector3.Lerp(start, end, t);
+                    
+                    // Create dynamic jittering effect
+                    float jitter = Mathf.Sin((elapsed * 20f) + (i * 1.5f)) * 0.1f;
+                    jitter += Mathf.PerlinNoise(t * 10 + elapsed * 5, Time.time) * 0.15f - 0.075f;
+                    
+                    lightning.SetPosition(i, basePoint + perpendicular * jitter * Vector3.Distance(start, end));
+                    
+                    // Update glow positions to match
+                    if (glow != null && i < glow.positionCount)
+                    {
+                        glow.SetPosition(i, basePoint + perpendicular * jitter * Vector3.Distance(start, end));
+                    }
+                }
+            }
+        }
+        
+        // Fade out the glow
+        if (glow != null)
+        {
+            float glowAlpha = Mathf.Lerp(0.3f, 0f, elapsed / duration);
+            glow.startColor = new Color(glow.startColor.r, glow.startColor.g, glow.startColor.b, glowAlpha);
+            glow.endColor = new Color(glow.endColor.r, glow.endColor.g, glow.endColor.b, glowAlpha * 0.3f);
+        }
     }
 }

@@ -231,6 +231,24 @@ public class CardUpgradeUI : MonoBehaviour
             case CardUpgradeType.GreenVampire:
                 cardThrower.ApplyGreenVampireUpgrade();
                 break;
+            case CardUpgradeType.RedHomingPrecision:
+                cardThrower.ApplyRedHomingPrecisionUpgrade();
+                break;
+            case CardUpgradeType.BlueHomingPrecision:
+                cardThrower.ApplyBlueHomingPrecisionUpgrade();
+                break;
+            case CardUpgradeType.GreenHomingPrecision:
+                cardThrower.ApplyGreenHomingPrecisionUpgrade();
+                break;
+            case CardUpgradeType.RedChainLightning:
+                cardThrower.ApplyRedChainLightningUpgrade();
+                break;
+            case CardUpgradeType.BlueChainLightning:
+                cardThrower.ApplyBlueChainLightningUpgrade();
+                break;
+            case CardUpgradeType.GreenChainLightning:
+                cardThrower.ApplyGreenChainLightningUpgrade();
+                break;
             default:
                 Debug.LogWarning("CardUpgradeUI: Unknown upgrade type: " + upgrade.type);
                 break;
