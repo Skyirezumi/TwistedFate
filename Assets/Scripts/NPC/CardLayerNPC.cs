@@ -157,8 +157,21 @@ public class CardLayerNPC : MonoBehaviour
             // Generate random upgrades
             CardUpgrade[] availableUpgrades = GenerateRandomUpgrades();
             
-            // Open the UI to display upgrades
-            CardUpgradeUI.Instance.ShowUpgrades(availableUpgrades, upgradeCost);
+            // Check for shuffle effect
+            SimpleCardShuffleEffect shuffleEffect = GetComponentInChildren<SimpleCardShuffleEffect>();
+            if (shuffleEffect != null)
+            {
+                // Play the shuffle animation, then show upgrades when it completes
+                shuffleEffect.PlayShuffleAnimation(() => {
+                    // Open the UI to display upgrades after animation completes
+                    CardUpgradeUI.Instance.ShowUpgrades(availableUpgrades, upgradeCost);
+                });
+            }
+            else
+            {
+                // No shuffle effect found, show upgrades immediately
+                CardUpgradeUI.Instance.ShowUpgrades(availableUpgrades, upgradeCost);
+            }
         }
         else
         {
