@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System; // Add System namespace for Action
 
 public class EnemyHealth : MonoBehaviour
 {
@@ -8,11 +9,15 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private GameObject deathVFXPrefab;
     [SerializeField] private float knockBackThrust = 15f;
     [SerializeField] private bool isBountyEnemy = false;
+    [SerializeField] private bool isBoss = false;
 
     private int currentHealth;
     private Knockback knockback;
     private Flash flash;
     private float originalKnockbackThrust; // Store original knockback value
+    
+    // Add event for health changes
+    public event Action<int, int> OnHealthChanged; // (currentHealth, maxHealth)
 
     private void Awake() {
         flash = GetComponent<Flash>();
@@ -36,6 +41,27 @@ public class EnemyHealth : MonoBehaviour
         knockback.GetKnockedBack(PlayerController.Instance.transform, knockBackThrust);
         StartCoroutine(flash.FlashRoutine());
         StartCoroutine(CheckDetectDeathRoutine());
+        
+        // Trigger health changed event
+        OnHealthChanged?.Invoke(currentHealth, startingHealth);
+    }
+    
+    // Add method to gain health
+    public void GainHealth(int amount) {
+        // Add health but don't exceed starting health
+        currentHealth = Mathf.Min(currentHealth + amount, startingHealth);
+        
+        // Play heal effect
+        if (flash != null) {
+            // Flash green to indicate healing
+            flash.FlashColor(Color.green, 0.2f);
+        }
+        
+        // Trigger health changed event
+        OnHealthChanged?.Invoke(currentHealth, startingHealth);
+        
+        // Log healing
+        Debug.Log(gameObject.name + " gained " + amount + " health. Current health: " + currentHealth);
     }
 
     private IEnumerator CheckDetectDeathRoutine() {
@@ -43,8 +69,16 @@ public class EnemyHealth : MonoBehaviour
         DetectDeath();
     }
 
-    public void DetectDeath() {
-        if (currentHealth <= 0) {
+    private void DetectDeath()
+    {
+        if (currentHealth <= 0)
+        {
+            // Notify GameManager if this is a boss
+            if (isBoss)
+            {
+                GameManager.Instance.BossKilled();
+            }
+            
             // Create death effect
             Instantiate(deathVFXPrefab, transform.position, Quaternion.identity);
             
@@ -52,9 +86,9 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<PickUpSpawner>()?.DropItems();
             
             // Check if this is a bounty enemy
-            if (isBountyEnemy && GameManager.Instance != null) {
-                // Notify the game manager
-                GameManager.Instance.BountyEnemyKilled();
+            if (isBountyEnemy)
+            {
+                GameManager.Instance.BossKilled();
             }
             
             // Destroy the enemy
@@ -72,5 +106,11 @@ public class EnemyHealth : MonoBehaviour
     public void ResetKnockbackThrust()
     {
         knockBackThrust = originalKnockbackThrust;
+    }
+    
+    // Add getter for current health percentage
+    public float GetHealthPercentage()
+    {
+        return (float)currentHealth / startingHealth;
     }
 }

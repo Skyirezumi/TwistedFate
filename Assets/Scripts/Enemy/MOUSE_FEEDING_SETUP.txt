@@ -1,0 +1,56 @@
+# Mouse of Death - Enemy Feeding System Setup
+
+## Overview
+This system allows the Mouse of Death boss to chase and eat Cactus Enemies to regain health when damaged. When the Mouse's health drops below a threshold, it will hunt for cactus enemies while continuing to attack the player.
+
+## Setup Instructions
+
+### 1. Tag the Cactus Enemies
+1. Select all Cactus Enemy prefabs in your project
+2. In the Inspector, set their Tag to "CactusEnemy" (create this tag if it doesn't exist)
+
+### 2. Configure the Mouse of Death Boss
+1. Select the "Mouse of Death" prefab
+2. Add the "BossEnemyFeed" component from the Add Component menu
+3. Configure the component settings:
+
+   **Feeding Settings:**
+   - Detection Radius: 15 (how far the Mouse can detect cactus enemies)
+   - Target Enemy Tag: "CactusEnemy"
+   - Health Gain Amount: 10 (amount of health gained per cactus eaten)
+   - Feed Cooldown: 1.5 (seconds between eating cactus enemies)
+   - Show Detection Radius: true (for debugging)
+   - Detection Radius Color: Green (for visualization in the Scene view)
+
+   **State Management:**
+   - Health Threshold To Feed: 0.7 (start feeding when below 70% health)
+   - Return To Fight Threshold: 0.9 (return to fighting the player when above 90% health)
+
+### 3. Ensure Proper Collider Setup
+1. The Mouse of Death should have a Collider2D component (probably already has one)
+2. Make sure this collider is set to "Is Trigger" or add a separate trigger collider
+3. Cactus Enemies should also have their own colliders
+
+### 4. Playtest and Fine-tune
+1. Test the boss fight and observe when the Mouse of Death takes damage
+2. When below 70% health, it should start seeking cactus enemies WHILE still shooting at the player
+3. After eating enough to reach 90% health, it should return to exclusively focusing on the player
+4. Adjust the Health Gain Amount if needed - it should be balanced so the boss gets a slight advantage but isn't invincible
+
+## Boss Behavior
+- The Mouse of Death will continue to shoot at the player while chasing cactus enemies
+- This creates a challenging dynamic where the player must dodge attacks while also trying to prevent the boss from healing
+- The boss prioritizes movement toward cactus enemies when in feeding mode, but still maintains its attack pattern
+
+## Troubleshooting
+
+If the Mouse is not eating cactus enemies:
+1. Verify that cactus enemies have the correct "CactusEnemy" tag
+2. Make sure the colliders are properly set up on both the Mouse and cactus enemies
+3. Check the Detection Radius setting - it may be too small
+4. Confirm that the Mouse of Death has the EnemyHealth, EnemyPathfinding, and EnemyAI components
+
+If the Mouse is gaining too much health:
+1. Reduce the Health Gain Amount setting
+2. Increase the Feed Cooldown to make feeding slower
+3. Adjust the Return To Fight Threshold to make it return to the player sooner 

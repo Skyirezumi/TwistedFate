@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 6675700954042665938}
   - component: {fileID: 7776462915840127206}
   - component: {fileID: 1018356170471115262}
+  - component: {fileID: -48856768139228616}
   m_Layer: 0
   m_Name: Mouse of Death
   m_TagString: Untagged
@@ -124,6 +125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 6.98
+  stayInPlayArea: 1
 --- !u!114 &3387107529697824268
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -149,9 +151,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8bde1e1002f62134b89ac6e4065f57f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startingHealth: 50
+  startingHealth: 70
   deathVFXPrefab: {fileID: 4437346390251986527, guid: e7c23ee82a957094d97e5c4a18d1e038, type: 3}
   knockBackThrust: 1
+  isBountyEnemy: 0
 --- !u!114 &6983645287338510780
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,3 +280,23 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0}
   m_Size: {x: 6.9, y: 10.5}
   m_Direction: 0
+--- !u!114 &-48856768139228616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6585723537403805079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04cbb75b64c71a141bb64814dd2da265, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectionRadius: 20
+  targetEnemyTag: CactusEnemy
+  healthGainAmount: 10
+  feedCooldown: 0.5
+  showDetectionRadius: 1
+  detectionRadiusColor: {r: 0, g: 1, b: 0, a: 1}
+  healthThresholdToFeed: 0.7
+  returnToFightThreshold: 0.9
