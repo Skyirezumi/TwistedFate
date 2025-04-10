@@ -5,53 +5,54 @@ using UnityEngine.SceneManagement;
 
 public class VictoryScreen : MonoBehaviour
 {
-    [SerializeField] Button mainMenuButton;
-    [SerializeField] Button playAgainButton;
-    [SerializeField] TextMeshProUGUI victoryText;
-    [SerializeField] TextMeshProUGUI timeText;
+    [SerializeField] private Button returnToMenuButton;
+    [SerializeField] private Button continuePlayingButton;
+    [SerializeField] private TMP_Text victoryText;
     
     private void Start()
     {
-        // Hide the panel at start, GameManager will show it
+        // Initially hide the panel
         gameObject.SetActive(false);
         
         // Set up button listeners
-        if (mainMenuButton != null)
+        if (returnToMenuButton != null)
         {
-            mainMenuButton.onClick.AddListener(ReturnToMainMenu);
+            returnToMenuButton.onClick.AddListener(ReturnToMenu);
         }
         
-        if (playAgainButton != null)
+        if (continuePlayingButton != null)
         {
-            playAgainButton.onClick.AddListener(RestartGame);
-        }
-    }
-    
-    public void SetCompletionTime(float timeInSeconds)
-    {
-        if (timeText != null)
-        {
-            int minutes = Mathf.FloorToInt(timeInSeconds / 60);
-            int seconds = Mathf.FloorToInt(timeInSeconds % 60);
-            timeText.text = string.Format("Completion Time: {0:00}:{1:00}", minutes, seconds);
+            continuePlayingButton.onClick.AddListener(ContinuePlaying);
         }
     }
     
-    private void RestartGame()
+    public void ShowVictoryScreen()
     {
-        // Reset time scale
-        Time.timeScale = 1.0f;
+        // Activate the panel
+        gameObject.SetActive(true);
         
-        // Reload the current scene
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Set victory text
+        if (victoryText != null)
+        {
+            victoryText.text = "Victory!\nAll bounty enemies have been defeated!";
+        }
     }
     
-    private void ReturnToMainMenu()
+    private void ReturnToMenu()
     {
-        // Reset time scale
-        Time.timeScale = 1.0f;
+        // Reset timescale in case it was changed
+        Time.timeScale = 1f;
         
-        // Load the main menu
+        // Load the start menu scene
         SceneManager.LoadScene("StartMenu");
+    }
+    
+    private void ContinuePlaying()
+    {
+        // Resume gameplay
+        Time.timeScale = 1f;
+        
+        // Hide the victory screen
+        gameObject.SetActive(false);
     }
 } 

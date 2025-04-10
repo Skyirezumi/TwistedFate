@@ -1,16 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System; // Add for Action/event support
 
 public class EnemyHealth : MonoBehaviour
 {
-    // Event that will be triggered when the enemy dies
-    public event Action OnDeath;
-    
     [SerializeField] private int startingHealth = 3;
     [SerializeField] private GameObject deathVFXPrefab;
     [SerializeField] private float knockBackThrust = 15f;
+    [SerializeField] private bool isBountyEnemy = false;
 
     private int currentHealth;
     private Knockback knockback;
@@ -21,6 +18,13 @@ public class EnemyHealth : MonoBehaviour
         flash = GetComponent<Flash>();
         knockback = GetComponent<Knockback>();
         originalKnockbackThrust = knockBackThrust; // Store original value
+        
+        // Automatically flag bosses with specific naming convention as bounty enemies
+        if (gameObject.name.Contains("Death") || gameObject.name.Contains("Mouse of") || 
+            gameObject.name.Contains("Goldfish of") || gameObject.name.Contains("Hedgehog of") || 
+            gameObject.name.Contains("Scorpion of")) {
+            isBountyEnemy = true;
+        }
     }
 
     private void Start() {
@@ -41,11 +45,19 @@ public class EnemyHealth : MonoBehaviour
 
     public void DetectDeath() {
         if (currentHealth <= 0) {
-            // Trigger the death event before destroying the object
-            OnDeath?.Invoke();
-            
+            // Create death effect
             Instantiate(deathVFXPrefab, transform.position, Quaternion.identity);
-            GetComponent<PickUpSpawner>().DropItems();
+            
+            // Drop items
+            GetComponent<PickUpSpawner>()?.DropItems();
+            
+            // Check if this is a bounty enemy
+            if (isBountyEnemy && GameManager.Instance != null) {
+                // Notify the game manager
+                GameManager.Instance.BountyEnemyKilled();
+            }
+            
+            // Destroy the enemy
             Destroy(gameObject);
         }
     }

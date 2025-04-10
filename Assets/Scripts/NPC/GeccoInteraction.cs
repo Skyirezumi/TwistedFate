@@ -145,37 +145,6 @@ public class GeccoInteraction : MonoBehaviour
         // Spawn the boss
         GameObject spawnedBoss = Instantiate(selectedBossPair.bossPrefab, spawnPos, Quaternion.identity);
         
-        // Add BountyEnemy component to make it count for victory condition
-        if (!spawnedBoss.GetComponent<BountyEnemy>())
-        {
-            BountyEnemy bountyEnemy = spawnedBoss.AddComponent<BountyEnemy>();
-            SpriteRenderer spriteRenderer = spawnedBoss.GetComponent<SpriteRenderer>();
-            
-            // Set custom properties for each boss type
-            string bossName = spawnedBoss.name.Replace("(Clone)", "").Trim();
-            switch (bossName)
-            {
-                case "Mouse of Death":
-                    if (spriteRenderer != null) 
-                        spriteRenderer.color = new Color(1f, 0.5f, 0.5f); // Light red
-                    break;
-                case "Scorpion of Death":
-                    if (spriteRenderer != null) 
-                        spriteRenderer.color = new Color(1f, 0.3f, 0.3f); // Stronger red
-                    break; 
-                case "Goldfish of Death":
-                    if (spriteRenderer != null) 
-                        spriteRenderer.color = new Color(1f, 0.4f, 0.4f); // Medium red
-                    break;
-                case "Hedgehog of Death":
-                    if (spriteRenderer != null) 
-                        spriteRenderer.color = new Color(1f, 0.2f, 0.2f); // Very red
-                    break;
-            }
-            
-            Debug.Log($"Added BountyEnemy component to {bossName} - kill 4 to win!");
-        }
-        
         // Register the boss with the DirectionalIndicator if it exists
         if (DirectionalIndicator.Instance != null)
         {
