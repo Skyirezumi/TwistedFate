@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6776341683678630537}
   - component: {fileID: 36674686092456934}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Shadows_Sheet_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102,7 +102,7 @@ GameObject:
   - component: {fileID: 6567131496765133333}
   - component: {fileID: 6497144223932137571}
   - component: {fileID: 6219827037852507494}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: CactusEnemy
   m_TagString: CactusEnemy
   m_Icon: {fileID: 0}
@@ -165,7 +165,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_Sprite: {fileID: -957908033, guid: 5915c9edcd0f07646acd0bbc026c5d78, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -286,7 +286,6 @@ MonoBehaviour:
   deathVFXPrefab: {fileID: 1838299195302592552, guid: 44dec48f5a56e424fa50b513d1dfef0a, type: 3}
   knockBackThrust: 15
   isBountyEnemy: 0
-  isBoss: 0
 --- !u!114 &6567131496765133333
 MonoBehaviour:
   m_ObjectHideFlags: 0

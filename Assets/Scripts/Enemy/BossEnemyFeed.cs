@@ -12,6 +12,10 @@ public class BossEnemyFeed : MonoBehaviour
     [SerializeField] private bool showDetectionRadius = true;
     [SerializeField] private Color detectionRadiusColor = Color.green;
     
+    [Header("Particle Effects")]
+    [SerializeField] private GameObject eatEffectPrefab; // Particle system for eating effect
+    [SerializeField] private float eatEffectDuration = 0.5f;
+    
     [Header("State Management")]
     [SerializeField] private float healthThresholdToFeed = 0.7f; // Start feeding when below 70% health
     [SerializeField] private float returnToFightThreshold = 0.9f; // Return to fighting when above 90% health
@@ -20,6 +24,7 @@ public class BossEnemyFeed : MonoBehaviour
     private EnemyHealth bossHealth;
     private EnemyPathfinding enemyPathfinding;
     private EnemyAI enemyAI;
+    private Collider2D bossCollider;
     
     // State tracking
     private bool isFeeding = false;
@@ -34,10 +39,11 @@ public class BossEnemyFeed : MonoBehaviour
         bossHealth = GetComponent<EnemyHealth>();
         enemyPathfinding = GetComponent<EnemyPathfinding>();
         enemyAI = GetComponent<EnemyAI>();
+        bossCollider = GetComponent<Collider2D>();
         
-        if (bossHealth == null || enemyPathfinding == null || enemyAI == null)
+        if (bossHealth == null || enemyPathfinding == null || enemyAI == null || bossCollider == null)
         {
-            Debug.LogError("BossEnemyFeed requires EnemyHealth, EnemyPathfinding, and EnemyAI components on the same GameObject!");
+            Debug.LogError("BossEnemyFeed requires EnemyHealth, EnemyPathfinding, EnemyAI, and Collider2D components on the same GameObject!");
             enabled = false;
             return;
         }
@@ -96,21 +102,18 @@ public class BossEnemyFeed : MonoBehaviour
                 // Only override movement if we're in feeding mode
                 enemyPathfinding.MoveTo(direction);
             }
+            
+            // Check if we're close enough to eat the target
+            float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
+            if (distanceToTarget <= 1.5f && canFeed) // 1.5 units is close enough to eat
+            {
+                EatEnemy(currentTarget.gameObject);
+            }
         }
         else
         {
             // No food targets available, return to normal behavior
             StopFeedingMode();
-        }
-    }
-    
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        // Check if we collided with a food target
-        if (isFeeding && canFeed && other.CompareTag(targetEnemyTag))
-        {
-            // "Eat" the enemy
-            EatEnemy(other.gameObject);
         }
     }
     
@@ -121,11 +124,10 @@ public class BossEnemyFeed : MonoBehaviour
         // Apply health boost to boss
         if (bossHealth != null)
         {
-            // Assuming there's a method to gain health
             bossHealth.GainHealth((int)healthGainAmount);
         }
         
-        // Play eat effect/animation if available
+        // Play eat effect/animation
         PlayEatEffect(enemy.transform.position);
         
         // Destroy the eaten enemy
@@ -196,12 +198,17 @@ public class BossEnemyFeed : MonoBehaviour
     
     private void PlayEatEffect(Vector3 position)
     {
-        // You can add particles or sound effects here
-        // For example:
-        // Instantiate(eatEffectPrefab, position, Quaternion.identity);
+        if (eatEffectPrefab != null)
+        {
+            // Create the particle effect
+            GameObject effect = Instantiate(eatEffectPrefab, position, Quaternion.identity);
+            
+            // Destroy the effect after its duration
+            Destroy(effect, eatEffectDuration);
+        }
         
-        // For now, just log it
-        Debug.Log("Boss ate a cactus enemy at position: " + position);
+        // Play a sound effect if available
+        // AudioManager.Instance?.PlaySound("BossEat");
     }
     
     // Visual debugging

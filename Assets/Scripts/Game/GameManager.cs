@@ -9,11 +9,11 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [Header("Victory Settings")]
-    [SerializeField] private int bossesToWin = 4;
-    [SerializeField] private GameObject winScreen;
+    [SerializeField] private int bountyEnemiesToWin = 4;
+    [SerializeField] private VictoryScreen victoryScreen;
     [SerializeField] private TMP_Text killCounterText;
     
-    private int bossesKilled = 0;
+    private int bountyEnemiesKilled = 0;
     
     private void Awake()
     {
@@ -32,38 +32,32 @@ public class GameManager : MonoBehaviour
     
     private void Start()
     {
-        // Find win screen if not assigned
-        if (winScreen == null)
+        // Find victory screen if not assigned
+        if (victoryScreen == null)
         {
-            winScreen = GameObject.Find("WinScreen");
-            if (winScreen == null)
+            victoryScreen = FindObjectOfType<VictoryScreen>();
+            if (victoryScreen == null)
             {
-                Debug.LogWarning("Win screen not found! Create a GameObject named 'WinScreen' in your scene.");
+                Debug.LogWarning("Victory screen not found! Create a VictoryScreen in your scene.");
             }
-        }
-        
-        // Hide win screen at start
-        if (winScreen != null)
-        {
-            winScreen.SetActive(false);
         }
         
         // Initialize kill counter text
         UpdateKillCounterText();
     }
     
-    public void BossKilled()
+    public void BountyEnemyKilled()
     {
-        bossesKilled++;
-        Debug.Log($"Boss killed! Total: {bossesKilled}/{bossesToWin}");
+        bountyEnemiesKilled++;
+        Debug.Log($"Bounty enemy killed! Total: {bountyEnemiesKilled}/{bountyEnemiesToWin}");
         
         // Update UI
         UpdateKillCounterText();
         
         // Check if we've won
-        if (bossesKilled >= bossesToWin)
+        if (bountyEnemiesKilled >= bountyEnemiesToWin)
         {
-            ShowWinScreen();
+            ShowVictoryScreen();
         }
     }
     
@@ -71,17 +65,21 @@ public class GameManager : MonoBehaviour
     {
         if (killCounterText != null)
         {
-            killCounterText.text = $"Bosses Defeated: {bossesKilled}/{bossesToWin}";
+            killCounterText.text = $"Bounty Enemies: {bountyEnemiesKilled}/{bountyEnemiesToWin}";
         }
     }
     
-    private void ShowWinScreen()
+    private void ShowVictoryScreen()
     {
-        if (winScreen != null)
+        Debug.Log("Victory! All bounty enemies defeated!");
+        
+        if (victoryScreen != null)
         {
-            winScreen.SetActive(true);
-            // Pause the game
-            Time.timeScale = 0f;
+            victoryScreen.ShowVictoryScreen();
+        }
+        else
+        {
+            Debug.LogError("Victory screen is null - can't show victory!");
         }
     }
 } 

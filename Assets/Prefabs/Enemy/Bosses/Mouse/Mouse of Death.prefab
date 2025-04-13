@@ -296,7 +296,7 @@ MonoBehaviour:
   targetEnemyTag: CactusEnemy
   healthGainAmount: 10
   feedCooldown: 0.5
-  showDetectionRadius: 1
+  showDetectionRadius: 0
   detectionRadiusColor: {r: 0, g: 1, b: 0, a: 1}
   healthThresholdToFeed: 0.7
   returnToFightThreshold: 0.9

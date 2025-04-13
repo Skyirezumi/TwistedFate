@@ -9,7 +9,6 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private GameObject deathVFXPrefab;
     [SerializeField] private float knockBackThrust = 15f;
     [SerializeField] private bool isBountyEnemy = false;
-    [SerializeField] private bool isBoss = false;
 
     private int currentHealth;
     private Knockback knockback;
@@ -69,16 +68,8 @@ public class EnemyHealth : MonoBehaviour
         DetectDeath();
     }
 
-    private void DetectDeath()
-    {
-        if (currentHealth <= 0)
-        {
-            // Notify GameManager if this is a boss
-            if (isBoss)
-            {
-                GameManager.Instance.BossKilled();
-            }
-            
+    public void DetectDeath() {
+        if (currentHealth <= 0) {
             // Create death effect
             Instantiate(deathVFXPrefab, transform.position, Quaternion.identity);
             
@@ -86,9 +77,9 @@ public class EnemyHealth : MonoBehaviour
             GetComponent<PickUpSpawner>()?.DropItems();
             
             // Check if this is a bounty enemy
-            if (isBountyEnemy)
-            {
-                GameManager.Instance.BossKilled();
+            if (isBountyEnemy && GameManager.Instance != null) {
+                // Notify the game manager
+                GameManager.Instance.BountyEnemyKilled();
             }
             
             // Destroy the enemy
